@@ -1,45 +1,51 @@
-@extends('user.layouts.app')
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keranjang Belanja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
 
-@section('content')
-    <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-4 text-blue-600">Keranjang Belanja</h2>
+<div class="max-w-5xl mx-auto p-6">
+    <h2 class="text-3xl font-bold text-duarasa-red mb-6">🛒 Keranjang Belanja</h2>
 
-        @if (session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if ($cartItems->isEmpty())
-            <p class="text-gray-500 text-center py-10">Keranjang kamu masih kosong 😅</p>
-        @else
-            <table class="w-full border border-gray-200 rounded-lg overflow-hidden">
-                <thead class="bg-blue-100">
+    @if($cartItems->count() > 0)
+        <form action="" method="POST" id="cartForm">
+            <table class="w-full border border-gray-300 rounded-lg">
+                <thead class="bg-duarasa-red text-white">
                     <tr>
+                        <th class="p-3 text-left"><input type="checkbox" id="selectAll"></th>
                         <th class="p-3 text-left">Produk</th>
                         <th class="p-3 text-left">Harga</th>
                         <th class="p-3 text-center">Jumlah</th>
-                        <th class="p-3 text-right">Total</th>
+                        <th class="p-3 text-right">Subtotal</th>
                         <th class="p-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="cartBody">
                     @foreach ($cartItems as $item)
-                        <tr class="border-t">
-                            <td class="p-3">{{ $item->product->name }}</td>
+                        <tr class="border-t hover:bg-gray-100 transition">
+                            <td class="p-3 text-center">
+                                <input type="checkbox" class="itemCheckbox" data-price="{{ $item->product->price }}" data-qty="{{ $item->quantity }}">
+                            </td>
+                            <td class="p-3 font-medium">{{ $item->product->name }}</td>
                             <td class="p-3">Rp {{ number_format($item->product->price, 0, ',', '.') }}</td>
-                            <td class="p-3 text-center">{{ $item->quantity }}</td>
-                            <td class="p-3 text-right">
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button type="button" class="decrease px-2 py-1 bg-gray-200 rounded" data-id="{{ $item->id }}">−</button>
+                                    <span id="qty-{{ $item->id }}">{{ $item->quantity }}</span>
+                                    <button type="button" class="increase px-2 py-1 bg-gray-200 rounded" data-id="{{ $item->id }}">+</button>
+                                </div>
+                            </td>
+                            <td class="p-3 text-right font-semibold" id="subtotal-{{ $item->id }}">
                                 Rp {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
                             </td>
                             <td class="p-3 text-center">
-                                <form action="{{ route('user.cart.remove', $item->product_id) }}" method="POST" class="inline">
+                                <form action="{{ route('user.cart.remove', $item->product_id) }}" method="POST">
                                     @csrf
-                                    <button type="submit"
-                                        onclick="return confirmDelete(event, '{{ $item->product->name }}')"
-                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                                        Hapus
-                                    </button>
+                                    <button type="submit" class="text-red-600 hover:underline">Hapus</button>
                                 </form>
                             </td>
                         </tr>
@@ -47,21 +53,86 @@
                 </tbody>
             </table>
 
-            <div class="mt-6 text-right">
-                <span class="font-semibold text-lg">Total Keseluruhan: </span>
-                <span class="text-xl font-bold text-blue-600">
-                    Rp {{ number_format($cartItems->sum(fn($i) => $i->product->price * $i->quantity), 0, ',', '.') }}
-                </span>
+            <div class="mt-6 flex justify-between items-center">
+                <div class="text-lg font-semibold">
+                    Total: <span id="totalPrice">Rp 0</span>
+                </div>
+                <a href="{{ route('checkout') }}"
+                   class="bg-duarasa-red text-white px-6 py-2 rounded-lg hover:bg-duarasa-darkred transition">
+                    Lanjut ke Checkout
+                </a>
             </div>
-        @endif
-    </div>
+        </form>
+    @else
+        <p class="text-gray-500">Keranjang kamu masih kosong 😢</p>
+    @endif
+</div>
 
-    <script>
-        function confirmDelete(event, productName) {
-            event.preventDefault();
-            if (confirm(`Yakin ingin menghapus produk "${productName}" dari keranjang?`)) {
-                event.target.closest('form').submit();
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const checkboxes = document.querySelectorAll('.itemCheckbox');
+    const selectAll = document.getElementById('selectAll');
+    const totalPriceEl = document.getElementById('totalPrice');
+
+    // Hitung total harga saat checkbox berubah
+    function updateTotal() {
+        let total = 0;
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const price = parseInt(cb.dataset.price);
+                const qty = parseInt(cb.dataset.qty);
+                total += price * qty;
             }
-        }
-    </script>
-@endsection
+        });
+        totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
+    selectAll?.addEventListener('change', (e) => {
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+        updateTotal();
+    });
+
+    // Tambah/kurangi jumlah produk
+    document.querySelectorAll('.increase').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const qtyEl = document.getElementById(`qty-${id}`);
+            let qty = parseInt(qtyEl.textContent);
+            qty++;
+            qtyEl.textContent = qty;
+
+            const checkbox = btn.closest('tr').querySelector('.itemCheckbox');
+            checkbox.dataset.qty = qty;
+
+            const price = parseInt(checkbox.dataset.price);
+            const subtotalEl = document.getElementById(`subtotal-${id}`);
+            subtotalEl.textContent = `Rp ${(price * qty).toLocaleString('id-ID')}`;
+
+            updateTotal();
+        });
+    });
+
+    document.querySelectorAll('.decrease').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const qtyEl = document.getElementById(`qty-${id}`);
+            let qty = parseInt(qtyEl.textContent);
+            if (qty > 1) qty--;
+            qtyEl.textContent = qty;
+
+            const checkbox = btn.closest('tr').querySelector('.itemCheckbox');
+            checkbox.dataset.qty = qty;
+
+            const price = parseInt(checkbox.dataset.price);
+            const subtotalEl = document.getElementById(`subtotal-${id}`);
+            subtotalEl.textContent = `Rp ${(price * qty).toLocaleString('id-ID')}`;
+
+            updateTotal();
+        });
+    });
+});
+</script>
+
+</body>
+</html>

@@ -48,14 +48,20 @@ Route::prefix('customer')->group(function () {
         Route::get('/product/{id}', [UserProductController::class, 'show'])->name('user.product.show');
     });
         // Keranjang
+        // Keranjang
         Route::get('/cart', [UserCartController::class, 'index'])->name('user.cart.index');
-        Route::post('/cart/add/{productId}', [UserCartController::class, 'add'])->name('user.cart.store');
+        Route::post('/cart/add', [UserCartController::class, 'store'])->name('user.cart.store');
         Route::post('/cart/remove/{productId}', [UserCartController::class, 'remove'])->name('user.cart.remove');
+
+        // Checkout
+    Route::get('/checkout', function () {
+        return view('user.checkout');
+    })->name('checkout');
     });
 });
 
 require __DIR__ . '/auth.php';
-=======
+
 require __DIR__.'/auth.php';
 
 // landing-page
