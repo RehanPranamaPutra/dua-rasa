@@ -6,6 +6,7 @@ use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProductController as UserProductController;
 use App\Http\Controllers\User\CartController as UserCartController;
 use App\Http\Controllers\Auth\CustomerAuthController;
+use App\Http\Controllers\LandingPageController;
 
 // ====================
 // Halaman Utama (Guest)
@@ -65,6 +66,4 @@ require __DIR__ . '/auth.php';
 require __DIR__.'/auth.php';
 
 // landing-page
-Route::get('/landing-page', function () {
-    return view('landingPage');
-})->name('landing-page');
+Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');

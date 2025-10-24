@@ -162,33 +162,32 @@
 
     {{-- 🌟 MENU SECTION --}}
     <section id="menu" class="text-center py-16 bg-duarasa-cream">
-    <h2 class="text-3xl font-bold mb-10">OUR MENU</h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-        @foreach ($menuItems as $menu)
-            <div class="bg-white rounded-lg shadow p-4">
-                <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border-4 border-gray-100">
-                    <img src="{{ $menu['img'] }}" alt="{{ $menu['name'] }}" class="w-full h-full object-cover">
+        <h2 class="text-3xl font-bold mb-10">OUR MENU</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            @foreach ($products as $product)
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border-4 border-gray-100">
+                        <img src="{{ asset('storage/' . $product->image) }}"
+                            alt="{{ $product->name }}"
+                            class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="font-semibold text-lg">{{ $product->name }}</h3>
+                    <div class="text-sm text-gray-600 my-2">
+                        <span class="font-bold text-duarasa-red">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
+                    </div>
+                    <form action="{{ route('user.cart.store') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <button type="submit"
+                            class="bg-duarasa-red text-white text-sm px-4 py-2 rounded-lg hover:bg-duarasa-darkred transition">
+                            🛒 Tambah ke Keranjang
+                        </button>
+                    </form>
                 </div>
-                <h3 class="font-semibold text-lg">{{ $menu['name'] }}</h3>
-                <div class="text-sm text-gray-600 my-2">
-                    <span class="font-bold text-duarasa-red">Rp{{ number_format($menu['price'], 0, ',', '.') }}</span>
-                    <span>|</span> <span>{{ $menu['cal'] }} Cal</span>
-                </div>
+            @endforeach
+        </div>
+    </section>
 
-                {{-- Form tambah ke keranjang: kirim product_id lewat POST --}}
-                <form action="{{ route('user.cart.store') }}" method="POST" class="inline">
-                    @csrf
-                    {{-- gunakan id jika ada, jika tidak gunakan loop index sebagai fallback --}}
-                    <input type="hidden" name="product_id" value="{{ $menu['id'] ?? ($loop->index + 1) }}">
-                    <button type="submit"
-                        class="bg-duarasa-red text-white text-sm px-4 py-2 rounded-lg hover:bg-duarasa-darkred transition">
-                        🛒 Tambah ke Keranjang
-                    </button>
-                </form>
-            </div>
-        @endforeach
-    </div>
-</section>
 
     {{-- 🌟 WHY US --}}
     <section id="why-us" class="text-center py-16">
