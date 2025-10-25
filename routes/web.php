@@ -6,6 +6,7 @@ use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProductController as UserProductController;
 use App\Http\Controllers\User\CartController as UserCartController;
 use App\Http\Controllers\Auth\CustomerAuthController;
+use App\Http\Controllers\LandingPageController;
 
 // ====================
 // Halaman Utama (Guest)
@@ -48,17 +49,21 @@ Route::prefix('customer')->group(function () {
         Route::get('/product/{id}', [UserProductController::class, 'show'])->name('user.product.show');
     });
         // Keranjang
+        // Keranjang
         Route::get('/cart', [UserCartController::class, 'index'])->name('user.cart.index');
-        Route::post('/cart/add/{productId}', [UserCartController::class, 'add'])->name('user.cart.store');
+        Route::post('/cart/add', [UserCartController::class, 'store'])->name('user.cart.store');
         Route::post('/cart/remove/{productId}', [UserCartController::class, 'remove'])->name('user.cart.remove');
+
+        // Checkout
+    Route::get('/checkout', function () {
+        return view('user.checkout');
+    })->name('checkout');
     });
 });
 
 require __DIR__ . '/auth.php';
-=======
+
 require __DIR__.'/auth.php';
 
 // landing-page
-Route::get('/landing-page', function () {
-    return view('landingPage');
-})->name('landing-page');
+Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
