@@ -15,4 +15,10 @@ class Product extends Model
     {
         return $this->belongsTo(Categories::class, 'category_id');
     }
+
+    // 🔗 Produk bisa muncul di banyak order detail
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'product_id');
+    }
 }

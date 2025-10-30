@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained('user_customers');
             $table->foreignId('address_id')->constrained('addresses');
-            $table->string('order_code')->unique();
+            $table->string('invoice_number')->unique();
             $table->decimal('total_price',12,2);
             $table->decimal('shipping_cost',12,2);
             $table->string('order_status');

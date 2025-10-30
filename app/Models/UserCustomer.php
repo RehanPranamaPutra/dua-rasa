@@ -22,4 +22,17 @@ class UserCustomer extends Authenticatable
         'password',
         'remember_token',
     ];
+
+     public function addresses()
+    {
+        return $this->hasMany(Address::class, 'customer_id');
+    }
+
+    /**
+     * Relasi untuk ambil alamat terakhir (opsional)
+     */
+    public function latestAddress()
+    {
+        return $this->hasOne(Address::class, 'customer_id')->latestOfMany();
+    }
 }
