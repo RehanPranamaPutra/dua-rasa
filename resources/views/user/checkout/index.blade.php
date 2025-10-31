@@ -11,7 +11,7 @@
   <!-- Navbar -->
   <nav class="bg-white shadow-md py-4">
     <div class="container mx-auto flex justify-between items-center px-4">
-      <h1 class="text-2xl font-bold text-amber-700">CoffeeShop</h1>
+      <h1 class="text-2xl font-bold text-amber-700">Dua Rasa</h1>
       <div>
         <a href="/" class="text-gray-600 hover:text-amber-600">Home</a>
         <a href="/cart" class="ml-4 text-gray-600 hover:text-amber-600">Keranjang</a>
@@ -44,20 +44,47 @@
 
     <!-- Right: Alamat & Ringkasan -->
     <div>
-      <form action="{{ route('checkout.store') }}" method="POST" class="bg-white rounded-xl shadow p-6">
+      <form action="" method="POST" class="bg-white rounded-xl shadow p-6">
         @csrf
         <h2 class="text-xl font-semibold mb-4 border-b pb-2">Alamat Pengiriman</h2>
 
         @if($addresses->isEmpty())
           <p class="text-gray-500 mb-4">Belum ada alamat. Tambahkan alamat baru:</p>
-          <a href="{{ route('address.create') }}" class="inline-block bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">Tambah Alamat</a>
+          <a href="{{ route('customer.address.create') }}" class="inline-block bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">Tambah Alamat</a>
         @else
-          <select name="address_id" class="w-full border-gray-300 rounded-lg mt-2 focus:ring-amber-500 focus:border-amber-500">
-            <option value="">-- Pilih Alamat --</option>
+          <div class="space-y-4">
             @foreach($addresses as $address)
-              <option value="{{ $address->id }}">{{ $address->label }} - {{ $address->full_address }}</option>
+              <label for="address_{{ $address->id }}" class="block border rounded-lg p-4 cursor-pointer hover:border-amber-600 transition">
+                <div class="flex items-start justify-between">
+                  <div class="flex items-start space-x-3">
+                    <input type="radio" id="address_{{ $address->id }}" name="address_id" value="{{ $address->id }}" class="mt-1 text-amber-600 focus:ring-amber-500">
+                    <div>
+                      <p class="font-semibold text-gray-800">{{ $address->label }}</p>
+                      <p class="text-sm text-gray-600">{{ $address->specific_address }}</p>
+                      <p class="text-sm text-gray-600">{{ $address->village }}, {{ $address->subdistrict }}, {{ $address->city }}, {{ $address->province }} ({{ $address->postal_code }})</p>
+                      <p class="text-sm text-gray-500 mt-1"><i class="fa fa-phone"></i> {{ $address->no_telp }}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex space-x-2">
+                    <a href="{{ route('customer.address.edit', $address->id) }}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                    <form action="{{ route('customer.address.delete', $address->id) }}" method="POST" onsubmit="return confirm('Hapus alamat ini?')">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Hapus</button>
+                    </form>
+                  </div>
+                </div>
+              </label>
             @endforeach
-          </select>
+          </div>
+
+          <!-- Tombol tambah alamat -->
+          <div class="mt-4">
+            <a href="{{ route('customer.address.create') }}" class="inline-block bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700">
+              + Tambah Alamat Baru
+            </a>
+          </div>
         @endif
 
         <div class="mt-8 border-t pt-4">
