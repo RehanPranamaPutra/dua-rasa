@@ -9,6 +9,7 @@ class Address extends Model
 {
     use HasFactory;
 
+     protected $table = 'addresses';
     protected $fillable = [
         'customer_id',
         'customer_name',
@@ -16,6 +17,7 @@ class Address extends Model
         'province',
         'city',
         'subdistrict',
+        'village',
         'postal_code',
         'specific_address',
     ];
