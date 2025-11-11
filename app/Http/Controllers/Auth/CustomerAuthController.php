@@ -58,6 +58,6 @@ class CustomerAuthController extends Controller
         Auth::guard('customer')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('customer.login');
+        return redirect()->route('landing-page');
     }
 }
