@@ -58,7 +58,8 @@ Route::prefix('customer')->group(function () {
         // Keranjang
         Route::get('/cart', [UserCartController::class, 'index'])->name('user.cart.index');
         Route::post('/cart/add', [UserCartController::class, 'store'])->name('user.cart.store');
-        Route::post('/cart/remove/{productId}', [UserCartController::class, 'remove'])->name('user.cart.remove');
+        Route::delete('/cart/remove/{productId}', [UserCartController::class, 'remove'])->name('user.cart.remove');
+
 
         // Checkout
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('customer.checkout');
