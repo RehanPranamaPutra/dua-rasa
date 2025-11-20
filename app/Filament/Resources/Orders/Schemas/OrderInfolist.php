@@ -1,29 +1,26 @@
 <?php
 
-namespace App\Filament\Resources\Products\Schemas;
+namespace App\Filament\Resources\Orders\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\ImageColumn;
 
-class ProductInfolist
+class OrderInfolist
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextEntry::make('category_id')
+                TextEntry::make('customer_id')
                     ->numeric(),
-                ImageColumn::make('image')
-                    ->disk('public'),
-                TextEntry::make('name'),
-                TextEntry::make('price')
-                    ->money(),
-                TextEntry::make('stok')
+                TextEntry::make('address_id')
                     ->numeric(),
-                TextEntry::make('weight')
+                TextEntry::make('invoice_number'),
+                TextEntry::make('total_price')
                     ->numeric(),
-                TextEntry::make('status'),
+                TextEntry::make('shipping_cost')
+                    ->numeric(),
+                TextEntry::make('order_status'),
                 TextEntry::make('created_at')
                     ->dateTime(),
                 TextEntry::make('updated_at')

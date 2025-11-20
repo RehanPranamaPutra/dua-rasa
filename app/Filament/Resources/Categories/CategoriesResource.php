@@ -10,6 +10,7 @@ use App\Filament\Resources\Categories\Schemas\CategoriesInfolist;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
 use App\Models\Categories;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +20,12 @@ class CategoriesResource extends Resource
 {
     protected static ?string $model = Categories::class;
 
+
+    protected static string|UnitEnum|null $navigationGroup = 'Product Management';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
