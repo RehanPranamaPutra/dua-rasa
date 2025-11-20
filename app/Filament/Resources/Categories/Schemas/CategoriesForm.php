@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Categories\Schemas;
 
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Grid;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
+use App\Models\Categories;
+use Illuminate\Support\Str;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 
 class CategoriesForm
 {
@@ -24,14 +26,20 @@ class CategoriesForm
                                 ->required()
                                 ->autofocus()
                                 ->lazy()
+                                ->afterStateUpdated(function (string $operation, $state, callable $set) {
+                                    if ($operation === 'create' || $operation === 'edit') {
+                                        $set('slug', Str::slug($state));
+                                    }
+                                })
                                 ->extraAttributes(['class' => 'rounded-xl py-3']),
 
+
                             TextInput::make('slug')
-                                ->label('Slug URL')
-                                ->placeholder('isilah slug unik untuk kategori ini...')
-                                ->required()
-                                ->lazy()
-                                ->extraAttributes(['class' => 'rounded-xl py-3']),
+                               ->disabled()
+                                    ->dehydrated()
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->unique(Categories::class, 'slug', ignoreRecord: true),
 
 
                         ]),

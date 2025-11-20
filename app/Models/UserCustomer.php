@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -34,5 +35,11 @@ class UserCustomer extends Authenticatable
     public function latestAddress()
     {
         return $this->hasOne(Address::class, 'customer_id')->latestOfMany();
+    }
+
+     /** @return HasManyThrough<Payment, Order, $this> */
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Payment::class, Order::class, 'customer_id' );
     }
 }
