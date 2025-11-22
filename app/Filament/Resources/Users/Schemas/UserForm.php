@@ -19,6 +19,7 @@ class UserForm
                     ->schema(([
                         Grid::make(1)->schema([
                             TextInput::make('name')
+                                ->label('Nama')
                                 ->required(),
 
 

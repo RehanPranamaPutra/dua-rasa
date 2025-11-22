@@ -12,10 +12,15 @@ class ProductSeeder extends Seeder
     {
         $categories = Categories::all();
 
+        // Gambar default
+        // kalau mau tukar foto sesuaiakan dengan nama file di storage/app/public/products satu saja untuk contoh
+        $imagePath = 'products/01K928TNP975PAD5YWQCSPY0XV.jpg';
+
         foreach ($categories as $category) {
             for ($i = 1; $i <= 5; $i++) {
                 Product::create([
                     'category_id' => $category->id,
+                    'image' => $imagePath,
                     'name' => $category->name . ' ' . $i,
                     'description' => 'Deskripsi produk ' . $category->name . ' nomor ' . $i,
                     'price' => rand(10000, 100000),

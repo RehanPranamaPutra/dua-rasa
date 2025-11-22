@@ -3,11 +3,12 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
-use Filament\Actions\BulkActionGroup;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
+use Filament\Actions\BulkActionGroup;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\Orders\OrderResource;
 
 class LatestOrders extends TableWidget
 {
@@ -41,7 +42,7 @@ class LatestOrders extends TableWidget
                 TextColumn::make('invoice_number')
                     ->label('Invoice')
                     ->searchable()
-                    ->url(fn($record) => route('filament.admin.resources.orders.view', $record))
+                    ->url(fn($record) => OrderResource::getUrl('view', ['record' => $record]))
                     ->openUrlInNewTab(),
 
                 // TOTAL PRICE (IDR FORMAT)
