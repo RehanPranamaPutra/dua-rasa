@@ -17,14 +17,18 @@ use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Filament\Resources\Orders\Schemas\OrderInfolist;
 use App\Filament\Resources\Shop\Orders\Widgets\OrderStats;
 use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
+use App\Filament\Resources\Orders\RelationManagers\AddressRelationManager;
+
+
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
+
     protected static string|UnitEnum|null $navigationGroup = 'Shop';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $recordTitleAttribute = 'customer_id';
+    protected static ?string $recordTitleAttribute = 'invoice_number';
 
     public static function form(Schema $schema): Schema
     {

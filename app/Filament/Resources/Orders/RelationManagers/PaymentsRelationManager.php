@@ -9,10 +9,11 @@ use Filament\Actions\EditAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Resources\RelationManagers\RelationManager;
 
 class PaymentsRelationManager extends RelationManager
@@ -61,9 +62,9 @@ class PaymentsRelationManager extends RelationManager
                 ])
                 ->required(),
 
-            TextInput::make('payment_time')
+            DateTimePicker::make('payment_time')
                 ->label('Waktu Pembayaran')
-                ->type('datetime-local')
+                ->seconds(false)
                 ->nullable(),
         ]);
     }

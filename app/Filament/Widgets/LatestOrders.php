@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Order;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
 use Filament\Widgets\TableWidget;
 use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Columns\TextColumn;
@@ -75,11 +76,10 @@ class LatestOrders extends TableWidget
                     ->dateTime('d M Y H:i')
                     ->sortable(),
             ])
-            ->filters([])
-            ->headerActions([])
-            ->recordActions([])
-            ->toolbarActions([
-                BulkActionGroup::make([]),
+            ->recordActions([
+                Action::make('open')
+                    ->url(fn (Order $record): string => OrderResource::getUrl('edit', ['record' => $record])),
             ]);
+
     }
 }

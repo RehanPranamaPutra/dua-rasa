@@ -34,13 +34,13 @@ class OrderStats extends BaseWidget
             ->count();
 
         return [
-            Stat::make('Pesnan', $this->getPageTableQuery()->count())
+            Stat::make('Pesanan', $this->getPageTableQuery()->count())
                 ->chart(
                     $orderData
                         ->map(fn (TrendValue $value) => $value->aggregate)
                         ->toArray()
                 ),
-            Stat::make('Buka pesanan', $this->getPageTableQuery()->whereIn('order_status', ['open', 'processing'])->count()),
+            Stat::make('Pesanan Dalam Proses', $this->getPageTableQuery()->whereIn('order_status', ['open', 'processing'])->count()),
             Stat::make('Harga rata-rata', number_format((float) $this->getPageTableQuery()->avg('total_price'), 2)),
         ];
     }
