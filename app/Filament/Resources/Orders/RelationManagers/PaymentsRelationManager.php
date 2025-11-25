@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\UserCustomers\RelationManagers;
+namespace App\Filament\Resources\Orders\RelationManagers;
 
 use App\Models\Payment;
 use Filament\Tables\Table;
@@ -13,29 +13,26 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Resources\RelationManagers\RelationManager;
 
 class PaymentsRelationManager extends RelationManager
 {
-    protected static string $relationship = 'payments'; // relasi di UserCustomer
+    protected static string $relationship = 'payment';
 
     protected static ?string $recordTitleAttribute = 'transaction_code';
 
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('order_id')
-                ->label('Pesanan')
-                ->relationship('order', 'invoice_number')
-                ->options(function ($livewire) {
-                    // Batasi order hanya milik customer ini
-                    return $livewire->ownerRecord->orders()->pluck('invoice_number', 'id');
-                })
-                ->searchable()
-                ->required(),
+            // Tampilkan invoice order read-only
+            TextInput::make('order_invoice')
+                ->label('Nomor Faktur')
+                ->disabled()
+                ->default(fn(?Payment $record) => $record?->order?->invoice_number),
 
             TextInput::make('transaction_code')
-                ->label('Kode Transaksi')
+                ->label('Code Transaksi')
                 ->maxLength(100)
                 ->required(),
 
@@ -55,19 +52,19 @@ class PaymentsRelationManager extends RelationManager
                 ->inline(),
 
             Select::make('payment_status')
-                ->label('Status Pemesanan')
+                ->label('Status')
                 ->options([
-                    'Berhasil' => 'Berhasil',
                     'Pending' => 'Pending',
+                    'Berhasil' => 'Berhasil',
                     'Gagal' => 'Gagal',
                     'Expired' => 'Expired',
                     'Refound' => 'Refound',
                 ])
                 ->required(),
 
-            TextInput::make('payment_time')
+            DateTimePicker::make('payment_time')
                 ->label('Waktu Pembayaran')
-                ->type('datetime-local')
+                ->seconds(false)
                 ->nullable(),
         ]);
     }
@@ -86,26 +83,25 @@ class PaymentsRelationManager extends RelationManager
                 ->searchable(),
 
             TextColumn::make('transaction_code')
-                ->label('Kode Transaksi')
+                ->label('Code Transaksi')
                 ->sortable()
                 ->searchable(),
 
             TextColumn::make('amount')
                 ->label('Jumlah')
-                ->money('IDR', true)
+                ->money('   ', true)
                 ->sortable(),
 
             TextColumn::make('payment_status')
                 ->label('Status')
                 ->badge()
-                ->color(fn(string $state): string => match ($state) {
-                    'Berhasil' => 'success',
-                    'Pending' => 'warning',
-                    'Gagal' => 'danger',
-                    'Expired' => 'gray',
-                    'Refound' => 'info',
-                    default => 'gray',
-                })
+                ->colors([
+                    'success' => 'Berhasil',
+                    'warning' => 'Pending',
+                    'danger' => 'Gagal',
+                    'gray' => 'Expired',
+                    'info' => 'Refound',
+                ])
                 ->sortable()
                 ->searchable(),
 
@@ -114,21 +110,22 @@ class PaymentsRelationManager extends RelationManager
                 ->dateTime()
                 ->sortable(),
         ])
-        ->filters([])
-        ->headerActions([
-            CreateAction::make()
-                ->after(function () {
-                    $this->tableSearch = null;
-                    $this->tableFilters = [];
-                }),
-        ])
-        ->defaultSort('created_at', 'desc')
-        ->recordActions([
-            EditAction::make(),
-            DeleteAction::make(),
-        ])
-        ->groupedBulkActions([
-            DeleteBulkAction::make(),
-        ]);
+            ->filters([])
+            ->headerActions([
+                CreateAction::make()
+                    ->after(function () {
+                        // Reset search dan filters
+                        $this->tableSearch = null;
+                        $this->tableFilters = [];
+                    }),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->groupedBulkActions([
+                DeleteBulkAction::make(),
+            ]);
     }
 }

@@ -27,7 +27,7 @@ class AddressesRelationManager extends RelationManager
                 ->disabled(),
 
             TextInput::make('customer_name')
-                ->label('Customer Name')
+                ->label('Nama Customer')
                 ->required()
                 ->maxLength(100),
 
@@ -37,32 +37,32 @@ class AddressesRelationManager extends RelationManager
                 ->maxLength(100),
 
             TextInput::make('province')
-                ->label('Province')
+                ->label('Provinsi')
                 ->required()
                 ->maxLength(150),
 
             TextInput::make('city')
-                ->label('City')
+                ->label('Kabupaten/Kota')
                 ->required()
                 ->maxLength(100),
 
             TextInput::make('subdistrict')
-                ->label('Subdistrict')
+                ->label('kecamatan')
                 ->required()
                 ->maxLength(150),
 
             TextInput::make('village')
-                ->label('Village')
+                ->label('Desa')
                 ->required()
                 ->maxLength(150),
 
             TextInput::make('postal_code')
-                ->label('Postal Code')
+                ->label('Kode Pos')
                 ->required()
                 ->maxLength(20),
 
             TextInput::make('specific_address')
-                ->label('Address')
+                ->label('Alamat Spesifik')
                 ->required()
                 ->maxLength(255),
         ]);
@@ -79,7 +79,7 @@ class AddressesRelationManager extends RelationManager
 
 
                 TextColumn::make('customer_name')
-                    ->label('Customer Name')
+                    ->label('Nama Customer')
                     ->sortable()
                     ->searchable(),
 
@@ -89,32 +89,32 @@ class AddressesRelationManager extends RelationManager
                     ->searchable(),
 
                 TextColumn::make('province')
-                    ->label('Province')
+                    ->label('Provinsi')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('city')
-                    ->label('City')
+                    ->label('Kabupaten/kota')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('subdistrict')
-                    ->label('Subdistrict')
+                    ->label('Kecamatan')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('village')
-                    ->label('Village')
+                    ->label('Desa')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('postal_code')
-                    ->label('Postal Code')
+                    ->label('Kode Pos')
                     ->sortable()
                     ->searchable(),
 
                 TextColumn::make('specific_address')
-                    ->label('Address')
+                    ->label('Alamat Spesifi')
                     ->sortable()
                     ->searchable(),
             ])

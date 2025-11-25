@@ -23,9 +23,9 @@ class ProductStats extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Total Products', $this->getPageTableQuery()->count()),
-            Stat::make('Product Inventory', $this->getPageTableQuery()->sum('stok')),
-            Stat::make('Average Price', number_format((float)$this->getPageTableQuery()->avg('price'), 2)),
+            Stat::make('Total Produk', $this->getPageTableQuery()->count()),
+            Stat::make('stok', $this->getPageTableQuery()->sum('stok')),
+            Stat::make('Harga Rata-Rata', number_format((float)$this->getPageTableQuery()->avg('price'), 2)),
         ];
     }
 }

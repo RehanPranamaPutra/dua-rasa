@@ -17,7 +17,7 @@ class CategoriesTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Category Name')
+                    ->label('Kategori')
                     ->searchable()
                     ->sortable()
                     ->weight('semibold')
@@ -27,7 +27,7 @@ class CategoriesTable
                     ->badge(),
 
                 TextColumn::make('description')
-                    ->label('Description')
+                    ->label('Deskripsi')
                     ->searchable()
                     ->limit(50)
                     ->tooltip(function (TextColumn $column): ?string {

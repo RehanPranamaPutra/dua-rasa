@@ -9,7 +9,7 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'address_id',
-        'order_code',
+        'invoice_number',
         'total_price',
         'shipping_cost',
         'order_status',
@@ -37,5 +37,10 @@ class Order extends Model
     public function details()
     {
         return $this->hasMany(OrderDetail::class, 'order_id');
+    }
+
+    public function getTotalPriceAttribute(): float
+    {
+        return $this->details()->sum('total');
     }
 }

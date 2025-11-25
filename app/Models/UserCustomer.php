@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -24,22 +23,34 @@ class UserCustomer extends Authenticatable
         'remember_token',
     ];
 
-     public function addresses()
+    // 🔗 Customer punya banyak alamat
+    public function addresses()
     {
         return $this->hasMany(Address::class, 'customer_id');
     }
 
-    /**
-     * Relasi untuk ambil alamat terakhir (opsional)
-     */
+    // 🔗 Alamat terakhir
     public function latestAddress()
     {
         return $this->hasOne(Address::class, 'customer_id')->latestOfMany();
     }
 
-     /** @return HasManyThrough<Payment, Order, $this> */
-    public function payments(): HasManyThrough
+    // 🔗 Customer punya banyak order
+    public function orders()
     {
-        return $this->hasManyThrough(Payment::class, Order::class, 'customer_id' );
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    // 🔗 Customer punya banyak payment melalui order
+    public function payments()
+    {
+        return $this->hasManyThrough(
+            Payment::class,
+            Order::class,
+            'customer_id',  // FK di orders
+            'order_id',     // FK di payments
+            'id',           // PK UserCustomer
+            'id'            // PK Order
+        );
     }
 }

@@ -16,7 +16,7 @@ class OrderStats extends BaseWidget
 
 
     protected ?string $pollingInterval = null;
-    
+
 
     protected function getTablePage(): string
     {
@@ -34,14 +34,14 @@ class OrderStats extends BaseWidget
             ->count();
 
         return [
-            Stat::make('Orders', $this->getPageTableQuery()->count())
+            Stat::make('Pesanan', $this->getPageTableQuery()->count())
                 ->chart(
                     $orderData
                         ->map(fn (TrendValue $value) => $value->aggregate)
                         ->toArray()
                 ),
-            Stat::make('Open orders', $this->getPageTableQuery()->whereIn('order_status', ['open', 'processing'])->count()),
-            Stat::make('Average price', number_format((float) $this->getPageTableQuery()->avg('total_price'), 2)),
+            Stat::make('Pesanan Dalam Proses', $this->getPageTableQuery()->whereIn('order_status', ['open', 'processing'])->count()),
+            Stat::make('Harga rata-rata', number_format((float) $this->getPageTableQuery()->avg('total_price'), 2)),
         ];
     }
 }

@@ -2,28 +2,33 @@
 
 namespace App\Filament\Resources\Orders;
 
-use App\Filament\Resources\Orders\Pages\CreateOrder;
-use App\Filament\Resources\Orders\Pages\EditOrder;
-use App\Filament\Resources\Orders\Pages\ListOrders;
-use App\Filament\Resources\Orders\Pages\ViewOrder;
-use App\Filament\Resources\Orders\Schemas\OrderForm;
-use App\Filament\Resources\Orders\Schemas\OrderInfolist;
-use App\Filament\Resources\Orders\Tables\OrdersTable;
-use App\Filament\Resources\Shop\Orders\Widgets\OrderStats;
-use App\Models\Order;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use BackedEnum;
 use UnitEnum;
+use BackedEnum;
+use App\Models\Order;
 use Filament\Tables\Table;
+use Filament\Schemas\Schema;
+use Filament\Resources\Resource;
+use App\Filament\Resources\Orders\Pages\EditOrder;
+use App\Filament\Resources\Orders\Pages\ViewOrder;
+use App\Filament\Resources\Orders\Pages\ListOrders;
+use App\Filament\Resources\Orders\Pages\CreateOrder;
+use App\Filament\Resources\Orders\Schemas\OrderForm;
+use App\Filament\Resources\Orders\Tables\OrdersTable;
+use App\Filament\Resources\Orders\Schemas\OrderInfolist;
+use App\Filament\Resources\Shop\Orders\Widgets\OrderStats;
+use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
+use App\Filament\Resources\Orders\RelationManagers\AddressRelationManager;
+
+
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
+
     protected static string|UnitEnum|null $navigationGroup = 'Shop';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $recordTitleAttribute = 'customer_id';
+    protected static ?string $recordTitleAttribute = 'invoice_number';
 
     public static function form(Schema $schema): Schema
     {
@@ -43,7 +48,7 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PaymentsRelationManager::class,
         ];
     }
 
@@ -60,6 +65,10 @@ class OrderResource extends Resource
             'index' => ListOrders::route('/'),
             'create' => CreateOrder::route('/create'),
             'edit' => EditOrder::route('/{record}/edit'),
+            'view' => ViewOrder::route('/{record}'),
+
         ];
     }
+
+
 }
