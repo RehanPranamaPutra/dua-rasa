@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Filament\Resources\Users\Schemas;
+
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Grid;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\DateTimePicker;
+
+class UserForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make()
+                    ->description()
+                    ->schema(([
+                        Grid::make(1)->schema([
+                            TextInput::make('name')
+                                ->label('Nama')
+                                ->required(),
+
+
+                            TextInput::make('email')
+                                ->label('Email address')
+                                ->required()
+                                ->email()
+                                ->unique(ignoreRecord: true),
+
+
+                            TextInput::make('password')
+                                ->password()
+                                ->required(),
+                        ])
+                    ]))
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->compact(),
+            ]);
+    }
+}

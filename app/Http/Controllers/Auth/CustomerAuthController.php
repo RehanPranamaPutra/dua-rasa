@@ -29,7 +29,7 @@ class CustomerAuthController extends Controller
 
         if (Auth::guard('customer')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            return redirect()->route('customer.dashboard');
+            return redirect()->route('landing-page');
         }
 
         return back()->withErrors([
@@ -58,6 +58,6 @@ class CustomerAuthController extends Controller
         Auth::guard('customer')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('customer.login');
+        return redirect()->route('landing-page');
     }
 }

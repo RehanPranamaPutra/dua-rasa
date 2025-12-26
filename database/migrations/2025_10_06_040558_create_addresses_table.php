@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('province');
             $table->string('city');
             $table->string('subdistrict');
+            $table->string('village');
             $table->string('postal_code');
             $table->string('specific_address');
             $table->timestamps();

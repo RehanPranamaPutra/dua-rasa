@@ -2,13 +2,15 @@
 
 namespace App\Filament\Resources\Products\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 
 class ProductsTable
 {
@@ -16,44 +18,69 @@ class ProductsTable
     {
         return $table
             ->columns([
-                TextColumn::make('category.name')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('name')
-                    ->searchable(),
+                ImageColumn::make('image')
+                    ->label('Gambar')
+                    ->disk('public')
+                    ->height(60)
+                    ->square()
+                    ->extraImgAttributes([
+                        'class' => 'rounded-md object-cover',
+                    ]),
 
-                  TextColumn::make('description')
-                    ->label('Deskripsi')
-                    ->limit(40),
+                TextColumn::make('name')
+                    ->label('Nama Produk')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('semibold'),
+
+                TextColumn::make('category.name')
+                    ->label('Kategori')
+                    ->badge()
+                    ->sortable(),
 
                 TextColumn::make('price')
-                    ->money()
+                    ->label('Harga')
+                    ->money('IDR')
                     ->sortable(),
+
                 TextColumn::make('stok')
+                    ->label('Stok')
                     ->numeric()
-                    ->sortable(),
-                TextColumn::make('weight')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('status'),
+                    ->sortable()
+                    ->badge()
+                    ->color(fn($state) => $state > 10 ? 'success' : ($state > 0 ? 'warning' : 'danger')),
+
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn($state) => $state === 'aktif' ? 'success' : 'danger')
+                    ->formatStateUsing(fn($state) => ucfirst($state)),
+
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Dibuat')
+                    ->dateTime('d M Y')
+                    ->sortable(),
             ])
+
             ->filters([
                 //
             ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+
+            ->actions([
+                EditAction::make()
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil')
+                    ->color('warning')
+                    ->size('sm'),
+
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->size('sm'),
             ])
-            ->toolbarActions([
+
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

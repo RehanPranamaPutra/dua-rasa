@@ -10,63 +10,83 @@ use App\Models\Product;
 
 class CartController extends Controller
 {
+    /**
+     * Show all cart items
+     */
     public function index()
     {
+        if (!Auth::guard('customer')->check()) {
+            return redirect()->route('customer.login')
+                ->with('error', 'Silakan login terlebih dahulu.');
+        }
+
         $userId = Auth::guard('customer')->id();
 
-        // Ambil semua item di keranjang user
         $cartItems = Cart::with('product')
             ->where('user_customer_id', $userId)
             ->get();
 
-        // Hitung total harga
         $total = $cartItems->sum(function ($item) {
-            return $item->product->price * $item->quantity;
+            return ($item->product->price ?? 0) * $item->quantity;
         });
 
         return view('user.cart', compact('cartItems', 'total'));
     }
 
+    /**
+     * Tambah item ke keranjang
+     */
     public function store(Request $request)
     {
-        $userId = Auth::guard('customer')->id();
+        if (!Auth::guard('customer')->check()) {
+            return redirect()->route('customer.login')
+                ->with('error', 'Silakan login terlebih dahulu!');
+        }
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
+        $userId = Auth::guard('customer')->id();
+        $productId = $request->product_id;
 
-        // Cek apakah produk sudah ada di keranjang user
-        $cartItem = Cart::where('user_customer_id', $userId)
-            ->where('product_id', $product->id)
+        $cart = Cart::where('user_customer_id', $userId)
+            ->where('product_id', $productId)
             ->first();
 
-        if ($cartItem) {
-            // Jika sudah ada, tambah quantity
-            $cartItem->quantity += 1;
-            $cartItem->save();
+        if ($cart) {
+            $cart->increment('quantity');
         } else {
-            // Jika belum ada, buat baru
             Cart::create([
                 'user_customer_id' => $userId,
-                'product_id' => $product->id,
-                'quantity' => 1,
+                'product_id'       => $productId,
+                'quantity'         => 1,
             ]);
         }
 
-        // Setelah tambah produk, langsung redirect ke halaman cart
-        return redirect()->route('user.cart.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
+        return redirect()
+            ->route('user.cart.index')
+            ->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
+    /**
+     * Hapus produk dari keranjang
+     */
     public function remove($productId)
     {
+        if (!Auth::guard('customer')->check()) {
+            return redirect()->route('customer.login')
+                ->with('error', 'Silakan login terlebih dahulu!');
+        }
+
         $userId = Auth::guard('customer')->id();
 
         Cart::where('user_customer_id', $userId)
             ->where('product_id', $productId)
             ->delete();
 
-        return redirect()->route('user.cart.index')->with('success', 'Produk dihapus dari keranjang!');
+        return redirect()
+            ->route('user.cart.index')
+            ->with('success', 'Produk berhasil dihapus dari keranjang!');
     }
 }

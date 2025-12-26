@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ImageColumn;
 
 class ProductInfolist
 {
@@ -13,6 +14,8 @@ class ProductInfolist
             ->components([
                 TextEntry::make('category_id')
                     ->numeric(),
+                ImageColumn::make('image')
+                    ->disk('public'),
                 TextEntry::make('name'),
                 TextEntry::make('price')
                     ->money(),
