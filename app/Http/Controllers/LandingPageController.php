@@ -13,6 +13,6 @@ class LandingPageController extends Controller
         $products = Product::all();
 
         // Kirim ke view landingPage.blade.php
-        return view('landingPage', compact('products'));
+        return view('public.landingPage', compact('products'));
     }
 }

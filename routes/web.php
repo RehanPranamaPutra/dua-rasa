@@ -8,6 +8,7 @@ use Laravolt\Indonesia\Models\District;
 use Laravolt\Indonesia\Models\Province;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\DashboardController;
@@ -64,6 +65,13 @@ Route::prefix('customer')->group(function () {
 
 
         // Checkout
+
+        Route::get('/checkout', function () {
+            return view('user.checkout');
+        })->name('checkout');
+
+        Route::get('/checkout', [CheckoutController::class, 'index'])->name('customer.checkout');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('customer.checkout.store');
         Route::get('/order', [OrderController::class, 'index'])->name('customer.order');
         Route::post('/order', [OrderController::class, 'store'])->name('customer.order.store');
         Route::get('/orders/{invoice}', [OrderController::class, 'show'])->name('customer.orders.show');
@@ -82,12 +90,10 @@ Route::prefix('customer')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
-
-require __DIR__ . '/auth.php';
-
 // landing-page
 Route::get('/landing-page', [LandingPageController::class, 'index'])->name('landing-page');
-
+// Product detail page - accessible without login
+Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.detail');
 Route::get('api/address/cities', [AddressController::class, 'cities'])->name('api.address.cities');
 Route::get('api/address/districts', [AddressController::class, 'districts'])->name('api.address.districts');
 Route::get('api/address/villages', [AddressController::class, 'villages'])->name('api.address.villages');

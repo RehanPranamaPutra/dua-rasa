@@ -22,6 +22,13 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
+<<<<<<< HEAD
+        CategorySeeder::class,
+        ProductSeeder::class,
+        UserCustomerSeeder::class,
+
+
+=======
         // CategorySeeder::class,
         // ProductSeeder::class,
         UserCustomerSeeder::class,
@@ -30,6 +37,7 @@ class DatabaseSeeder extends Seeder
         CartSeeder::class,
         AddressSeeder::class,
         OrderSeeder::class,
+>>>>>>> aa1db3745db207cdd22f2edc3feba668d044b81f
     ]);
     }
 }
