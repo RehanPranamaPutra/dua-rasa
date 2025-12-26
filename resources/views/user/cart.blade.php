@@ -63,7 +63,7 @@
                     <div class="text-lg font-semibold">
                         Total: <span id="totalPrice">Rp 0</span>
                     </div>
-                    <a href="{{ route('customer.checkout') }}"
+                    <a href="{{ route('customer.order') }}"
                         class="bg-duarasa-red text-white px-6 py-2 rounded-lg hover:bg-duarasa-darkred transition">
                         Lanjut ke Checkout
                     </a>
