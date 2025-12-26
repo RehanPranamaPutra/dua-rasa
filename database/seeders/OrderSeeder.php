@@ -75,14 +75,14 @@ class OrderSeeder extends Seeder
             // PAYMENT MOCK
             $isPaid = fake()->boolean(70); // 70% sukses
 
-            Payment::create([
-                'order_id'       => $order->id,
-                'method'         => fake()->randomElement(['Transfer Bank', 'E-Wallet', 'Dana', 'Ovo']),
-                'transaction_code' => Str::upper(Str::random(10)),
-                'amount'         => $total + $order->shipping_cost,
-                'payment_status' => $isPaid ? 'Berhasil' : 'Pending',
-                'payment_time'   => $isPaid ? now() : null,
-            ]);
+            // Payment::create([
+            //     'order_id'       => $order->id,
+            //     'method'         => fake()->randomElement(['Transfer Bank', 'E-Wallet', 'Dana', 'Ovo']),
+            //     'transaction_code' => Str::upper(Str::random(10)),
+            //     'amount'         => $total + $order->shipping_cost,
+            //     'payment_status' => $isPaid ? 'Berhasil' : 'Pending',
+            //     'payment_time'   => $isPaid ? now() : null,
+            // ]);
         }
     }
 }

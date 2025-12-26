@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('total_price',12,2);
             $table->decimal('shipping_cost',12,2);
             $table->enum('order_status', ['new', 'processing', 'shipped', 'delivered', 'cancelled'])->default('new');
+            $table->enum('payment_status',['Pending','Berhasil','Gagal','Expired','Refound'])->default('Pending');
             $table->timestamps();
         });
     }

@@ -86,7 +86,7 @@ class AddressController extends Controller
             'specific_address' => $request->specific_address,
         ]);
 
-        return redirect()->route('customer.checkout');
+        return redirect()->route('customer.order');
     }
 
     public function edit($id)
@@ -112,7 +112,7 @@ class AddressController extends Controller
 
 
         $address->save();
-        return redirect()->route('customer.checkout')->with('success', 'Alamat berhasil diperbarui.');
+        return redirect()->route('customer.order')->with('success', 'Alamat berhasil diperbarui.');
     }
 
     public function delete(Address $address)

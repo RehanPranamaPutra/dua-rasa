@@ -13,6 +13,7 @@ class Order extends Model
         'total_price',
         'shipping_cost',
         'order_status',
+        'payment_status'
     ];
 
      // 🔗 Setiap order dimiliki oleh 1 customer
