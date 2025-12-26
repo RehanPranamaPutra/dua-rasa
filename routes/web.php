@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\User\OrderController;
 use Laravolt\Indonesia\Models\City;
 use Illuminate\Support\Facades\Route;
 use Laravolt\Indonesia\Models\Village;
@@ -12,6 +13,7 @@ use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\User\CartController as UserCartController;
+use App\Http\Controllers\user\PaymentController;
 use App\Http\Controllers\User\ProductController as UserProductController;
 
 // ====================
@@ -62,8 +64,14 @@ Route::prefix('customer')->group(function () {
 
 
         // Checkout
-        Route::get('/checkout', [CheckoutController::class, 'index'])->name('customer.checkout');
-        Route::post('/checkout', [CheckoutController::class, 'store'])->name('customer.checkout.store');
+        Route::get('/order', [OrderController::class, 'index'])->name('customer.order');
+        Route::post('/order', [OrderController::class, 'store'])->name('customer.order.store');
+        Route::get('/orders/{invoice}', [OrderController::class, 'show'])->name('customer.orders.show');
+        Route::get('/payment/success',function(){
+            echo "Sukses pembayaran, silahkan tunggu proses pengiriman";
+        })->name('payment.success');
+
+        Route::post('/payment/callback',[PaymentController::class,'handleCallback'])->name('payment.callback');
 
         Route::get('/address/create', [AddressController::class, 'create'])->name('customer.address.create');
         Route::post('/address/store', [AddressController::class, 'store'])->name('customer.address.store');

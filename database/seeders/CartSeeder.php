@@ -61,7 +61,7 @@ class CartSeeder extends Seeder
         // Tambahkan contoh data cart
         foreach ($products as $index => $product) {
             Cart::create([
-                'user_customer_id' => $user->id,
+                'customer_id' => $user->id,
                 'product_id' => $product->id,
                 'quantity' => $index + 1, // contoh variasi quantity
             ]);

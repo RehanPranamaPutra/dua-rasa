@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shooping_carts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_customer_id')->constrained('user_customers');
+            $table->foreignId('customer_id')->constrained('user_customers');
             $table->foreignId('product_id')->constrained('products');
             $table->integer('amount');
             $table->decimal('total', 12, 2);

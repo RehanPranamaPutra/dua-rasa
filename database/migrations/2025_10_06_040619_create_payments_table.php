@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained('orders');
             $table->string('method');
-            $table->string('transaction_code');
+            $table->string('transaction_code')->nullable;
             $table->decimal('amount',12,2);
             $table->enum('payment_status',['Pending','Berhasil','Gagal','Expired','Refound']);
             $table->dateTime('payment_time')->nullable();

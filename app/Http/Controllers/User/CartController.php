@@ -23,7 +23,7 @@ class CartController extends Controller
         $userId = Auth::guard('customer')->id();
 
         $cartItems = Cart::with('product')
-            ->where('user_customer_id', $userId)
+            ->where('customer_id', $userId)
             ->get();
 
         $total = $cartItems->sum(function ($item) {
@@ -50,7 +50,7 @@ class CartController extends Controller
         $userId = Auth::guard('customer')->id();
         $productId = $request->product_id;
 
-        $cart = Cart::where('user_customer_id', $userId)
+        $cart = Cart::where('customer_id', $userId)
             ->where('product_id', $productId)
             ->first();
 
@@ -58,7 +58,7 @@ class CartController extends Controller
             $cart->increment('quantity');
         } else {
             Cart::create([
-                'user_customer_id' => $userId,
+                'customer_id' => $userId,
                 'product_id'       => $productId,
                 'quantity'         => 1,
             ]);
@@ -81,7 +81,7 @@ class CartController extends Controller
 
         $userId = Auth::guard('customer')->id();
 
-        Cart::where('user_customer_id', $userId)
+        Cart::where('customer_id', $userId)
             ->where('product_id', $productId)
             ->delete();
 
