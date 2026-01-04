@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Shop\Orders\Widgets;
+namespace App\Filament\Resources\Orders\Widgets;
 
 use App\Models\Order;
 use Flowframe\Trend\Trend;
@@ -37,7 +37,7 @@ class OrderStats extends BaseWidget
             Stat::make('Pesanan', $this->getPageTableQuery()->count())
                 ->chart(
                     $orderData
-                        ->map(fn (TrendValue $value) => $value->aggregate)
+                        ->map(fn(TrendValue $value) => $value->aggregate)
                         ->toArray()
                 ),
             Stat::make('Pesanan Dalam Proses', $this->getPageTableQuery()->whereIn('order_status', ['open', 'processing'])->count()),

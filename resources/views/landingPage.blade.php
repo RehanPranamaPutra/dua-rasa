@@ -1,41 +1,16 @@
 @php
-    // SIMULASI STATUS LOGIN (ganti true jika sudah login)
-    $logged_in = false;
+    // Status login asli
+    $logged_in = auth()->guard('customer')->check();
+
+    // Default cart count
+    // $cartCount = 0;
+
+    // if ($logged_in) {
+    //     $cartCount = \App\Models\Cart::where('customer_id', auth()->guard('customer')->id())->count(); // ✅ HITUNG BARIS
+    // }
 
     // Data gambar slideshow
-    $slides = [
-        asset('asset/menu/dendeng.jpg'),
-        asset('asset/menu/serundeng.jpg'),
-        asset('asset/menu/rendang.jpg'),
-    ];
-
-    // Data menu statis (simulasi)
-    $menuItems = [
-        [
-            'name' => 'Chicken Burger',
-            'price' => 12000,
-            'cal' => 150,
-            'img' => 'https://via.placeholder.com/150?text=Burger',
-        ],
-        [
-            'name' => 'Chicken Pizza',
-            'price' => 15000,
-            'cal' => 250,
-            'img' => 'https://via.placeholder.com/150?text=Pizza',
-        ],
-        [
-            'name' => 'Chicken Rice',
-            'price' => 15000,
-            'cal' => 250,
-            'img' => 'https://via.placeholder.com/150?text=Rice',
-        ],
-        [
-            'name' => 'Special Dessert',
-            'price' => 5000,
-            'cal' => 120,
-            'img' => 'https://via.placeholder.com/150?text=Dessert',
-        ],
-    ];
+    $slides = [asset('asset/menu/dendeng.jpg'), asset('asset/menu/serundeng.jpg'), asset('asset/menu/rendang.jpg')];
 
     // Data testimoni
     $testimonials = [
@@ -56,6 +31,7 @@
         ],
     ];
 @endphp
+
 
 <!DOCTYPE html>
 <html lang="id">
@@ -115,9 +91,9 @@
 
             <div class="hidden md:flex items-center space-x-4">
                 @if ($logged_in)
-                    <a href="/cart" class="relative hover:text-duarasa-red">
+                    <a href="{{ route('user.cart.index') }}" class="relative hover:text-duarasa-red">
                         🛒
-                        <span class="absolute -top-2 -right-2 text-xs bg-duarasa-red text-white px-1.5 rounded-full">2</span>
+
                     </a>
                     <a href="/profile" class="hover:text-duarasa-red">👤</a>
                 @else
@@ -141,8 +117,7 @@
                 Nikmati makanan berkualitas terbaik, segar dari dapur kami langsung ke pintu rumah Anda!
             </p>
             <div class="space-x-3">
-                <button
-                    class="bg-duarasa-red text-white px-6 py-3 rounded-lg hover:bg-duarasa-darkred transition">Order
+                <button class="bg-duarasa-red text-white px-6 py-3 rounded-lg hover:bg-duarasa-darkred transition">Order
                     Now</button>
                 <button
                     class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-100 transition">Explore
@@ -153,7 +128,8 @@
         <div class="md:w-1/2 mt-10 md:mt-0 relative">
             <div id="hero-slider" class="relative w-full h-[400px] overflow-hidden rounded-lg">
                 @foreach ($slides as $i => $slide)
-                    <img src="{{ $slide }}" class="slide-image absolute inset-0 w-full h-full object-cover
+                    <img src="{{ $slide }}"
+                        class="slide-image absolute inset-0 w-full h-full object-cover
                     {{ $i === 0 ? 'opacity-100' : 'opacity-0' }}">
                 @endforeach
             </div>
@@ -167,13 +143,13 @@
             @foreach ($products as $product)
                 <div class="bg-white rounded-lg shadow p-4">
                     <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border-4 border-gray-100">
-                        <img src="{{ asset('storage/' . $product->image) }}"
-                            alt="{{ $product->name }}"
+                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
                             class="w-full h-full object-cover">
                     </div>
                     <h3 class="font-semibold text-lg">{{ $product->name }}</h3>
                     <div class="text-sm text-gray-600 my-2">
-                        <span class="font-bold text-duarasa-red">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
+                        <span
+                            class="font-bold text-duarasa-red">Rp{{ number_format($product->price, 0, ',', '.') }}</span>
                     </div>
                     <form action="{{ route('user.cart.store') }}" method="POST" class="inline">
                         @csrf
@@ -273,4 +249,5 @@
         }, 3500);
     </script>
 </body>
+
 </html>
