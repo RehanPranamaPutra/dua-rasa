@@ -2,123 +2,86 @@
 
 namespace App\Http\Controllers\user;
 
+use Midtrans\Config;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use function Symfony\Component\Clock\now;
 
 class PaymentController extends Controller
 {
-   public function handleCallback(Request $request)
+    public function midtransCallback(Request $request)
     {
-        // Konfigurasi Midtrans
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
-        \Midtrans\Config::$isSanitized = true;
-        \Midtrans\Config::$is3ds = true;
+        // 1. Konfigurasi Midtrans
+        Config::$serverKey    = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
 
         try {
-            $notif = new \Midtrans\Notification();
+            $notif = new Notification();
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Invalid Notification'], 400);
+            Log::error("Midtrans Notification Error: " . $e->getMessage());
+            return response()->json(['error' => 'Invalid notification signature.'], 400);
         }
 
-        // 1. Validasi Signature Key (Keamanan Standard)
-        $validSignatureKey = hash("sha512", $notif->order_id . $notif->status_code . $notif->gross_amount . config('midtrans.server_key'));
-        if ($notif->signature_key !== $validSignatureKey) {
-            return response()->json(['message' => 'Invalid Signature'], 403);
-        }
+        $transactionStatus = $notif->transaction_status;
+        $fraudStatus       = $notif->fraud_status;
+        $orderId           = $notif->order_id; // Ini adalah invoice_number
 
-        $transaction = $notif->transaction_status;
-        $type = $notif->payment_type;
-        $orderId = $notif->order_id;
-        $fraud = $notif->fraud_status;
-
-        // 2. Cek Order Exist
+        // 2. Cari order berdasarkan invoice_number
         $order = Order::where('invoice_number', $orderId)->first();
         if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
+            return response()->json(['error' => 'Order not found.'], 404);
         }
 
-        // 3. LOGIKA PENERJEMAH (MAPPING)
-        // Midtrans (Inggris) -> Database Tim (Indonesia Sesuai Enum)
-        // Enum DB: ['Pending','Berhasil','Gagal','Expired','Refound']
+        // 3. Mapping Status ke Enum Database Anda:
+        // Enum: ['Pending','Berhasil','Gagal','Expired','Refound']
 
-        $statusUntukDb = 'Pending'; // Default awal
-
-        if ($transaction == 'capture') {
-            if ($type == 'credit_card') {
-                if ($fraud == 'challenge') {
-                    $statusUntukDb = 'Pending';
-                } else {
-                    $statusUntukDb = 'Berhasil';
-                }
+        if ($transactionStatus == 'capture') {
+            if ($fraudStatus == 'accept') {
+                $this->updateOrderAndPayment($order, 'Berhasil', 'processing', $notif);
             }
-        } elseif ($transaction == 'settlement') {
-            $statusUntukDb = 'Berhasil';
-        } elseif ($transaction == 'pending') {
-            $statusUntukDb = 'Pending';
-        } elseif ($transaction == 'deny') {
-            $statusUntukDb = 'Gagal';
-        } elseif ($transaction == 'expire') {
-            $statusUntukDb = 'Expired';
-        } elseif ($transaction == 'cancel') {
-            $statusUntukDb = 'Gagal';
-        } elseif ($transaction == 'refund') {
-            // Perhatikan ejaan di DB Anda 'Refound' (Typo di schema, tapi kita harus ikut DB)
-            $statusUntukDb = 'Refound';
+        } else if ($transactionStatus == 'settlement') {
+            $this->updateOrderAndPayment($order, 'Berhasil', 'processing', $notif);
+        } else if ($transactionStatus == 'pending') {
+            $this->updateOrderAndPayment($order, 'Pending', 'new', $notif);
+        } else if ($transactionStatus == 'expire') {
+            $this->updateOrderAndPayment($order, 'Expired', 'cancelled', $notif);
+        } else if (in_array($transactionStatus, ['cancel', 'deny'])) {
+            $this->updateOrderAndPayment($order, 'Gagal', 'cancelled', $notif);
+        } else if ($transactionStatus == 'refund') {
+            $this->updateOrderAndPayment($order, 'Refound', 'cancelled', $notif);
         }
 
-        // 4. Simpan ke Database
-        $this->updateOrderStatus($order, $statusUntukDb, $notif);
-
-        return response()->json(['message' => 'Callback received successfully']);
+        return response()->json(['message' => 'OK']);
     }
 
-    protected function updateOrderStatus(Order $order, string $statusDb, $notif)
+    /**
+     * Update status Order dan Payment sesuai Schema Project DuaRasa
+     */
+    protected function updateOrderAndPayment(Order $order, string $payStatus, string $ordStatus, Notification $notif)
     {
-        DB::beginTransaction();
-        try {
-            // A. Update Order
-            // Kita ubah payment_status sesuai mapping tadi
-            $dataUpdateOrder = ['payment_status' => $statusDb];
+        DB::transaction(function () use ($order, $payStatus, $ordStatus, $notif) {
 
-            // Opsional: Jika tim setuju, ubah order_status jadi 'processing' jika sudah bayar
-            if ($statusDb === 'Berhasil') {
-                $dataUpdateOrder['order_status'] = 'processing';
-            }
+            // A. Update Table 'orders'
+            $order->update([
+                'payment_status' => $payStatus, // ['Pending','Berhasil',...]
+                'order_status'   => $ordStatus  // ['new','processing',...]
+            ]);
 
-            $order->update($dataUpdateOrder);
-
-            // B. Update/Create Payment Record
-            // Kita isi kolom wajib sesuai Schema yang ada
+            // B. Update/Create Table 'payments'
             Payment::updateOrCreate(
                 ['order_id' => $order->id],
                 [
-                    // Kolom 'method' wajib diisi (string), kita ambil dari tipe pembayaran Midtrans
-                    'method'           => $notif->payment_type ?? 'unknown',
-
-                    // Kolom 'transaction_code' nullable
-                    'transaction_code' => $notif->transaction_id,
-
+                    'method'           => $notif->payment_type,
+                    'transaction_code' => $notif->transaction_id, // ID transaksi dari Midtrans
                     'amount'           => $notif->gross_amount,
-
-                    // Ini status yang sudah diterjemahkan ke Bhs Indonesia
-                    'payment_status'   => $statusDb,
-
-                    // Isi waktu hanya jika berhasil
-                    'payment_time'     => ($statusDb === 'Berhasil') ? now() : null,
+                    'payment_status'   => $payStatus,
+                    'payment_time'     => ($payStatus == 'Berhasil') ? now() : null,
                 ]
             );
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Payment Error: " . $e->getMessage());
-        }
+        });
     }
 }

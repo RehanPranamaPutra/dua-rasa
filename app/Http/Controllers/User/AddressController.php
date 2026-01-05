@@ -6,118 +6,76 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Laravolt\Indonesia\Models\Provinsi;
-use Laravolt\Indonesia\Models\Kabupaten;
-use Laravolt\Indonesia\Models\Kecamatan;
-use Laravolt\Indonesia\Models\Kelurahan;
+use Illuminate\Support\Facades\Http;
 
 class AddressController extends Controller
 {
+    // Gunakan Komerce untuk semua karena API Key Anda adalah API Key Komerce
+    private $baseUrl = "https://rajaongkir.komerce.id/api/v1/destination";
+
     public function create()
     {
-        // Mengambil semua data Provinsi dari package laravolt/indonesia
-        $provinces = Provinsi::all();
+        $response = Http::withHeaders([
+            'key' => config('rajaongkir.api_key'),
+        ])->get($this->baseUrl . '/province');
 
-        // Mengembalikan view dengan data Provinsi
+        $provinces = $response->json()['data'] ?? [];
         return view('user.address.create', compact('provinces'));
     }
 
-    /**
-     * Endpoint API untuk mengambil Kabupaten/Kota berdasarkan ID Provinsi.
-     * Dipanggil menggunakan AJAX.
-     */
-    // UNTUK CITY (Provinsi -> Kota)
-    public function cities(Request $request)
+    public function getCities($provinceId)
     {
-        $provinceCode = $request->get('province_id');
+        $response = Http::withHeaders(['key' => config('rajaongkir.api_key')])
+            ->get($this->baseUrl . "/city/{$provinceId}");
 
-        // MENGGUNAKAN Model Kabupaten
-        // Mencari dengan 'province_code'
-        $cities = Kabupaten::where('province_code', $provinceCode)->get();
-
-        return response()->json($cities);
+        // Komerce sudah mengembalikan format: data -> [[id, name], ...]
+        // Langsung kembalikan agar JS bisa baca item.id dan item.name
+        return response()->json($response->json()['data'] ?? []);
     }
 
-    // UNTUK DISTRICT (Kota -> Kecamatan)
-    public function districts(Request $request)
+    public function getDistricts($cityId)
     {
-        // Nilai yang dikirim dari frontend (value dari dropdown Kabupaten/Kota)
-        $cityCode = $request->get('city_id');
+        $response = Http::withHeaders(['key' => config('rajaongkir.api_key')])
+            ->get($this->baseUrl . "/district/{$cityId}");
 
-        // MENGGUNAKAN Model Kecamatan dan Mencari berdasarkan 'city_code'
-        // Model Kecamatan extend District, yang menggunakan city_code
-        $districts = Kecamatan::where('city_code', $cityCode)->get();
-
-        // Pastikan data Kecamatan ada untuk Kode Kabupaten/Kota yang dipilih
-        // Jika $districts kosong, ini penyebab dropdown tidak terisi.
-
-        return response()->json($districts);
+        return response()->json($response->json()['data'] ?? []);
     }
 
-    public function villages(Request $request)
+    public function getVillages($districtId)
     {
-        // Menggunakan 'district_code' untuk mencari di Model Kelurahan
-        $districtCode = $request->get('district_id');
-        $villages = Kelurahan::where('district_code', $districtCode)->get();
-        return response()->json($villages);
+        $response = Http::withHeaders(['key' => config('rajaongkir.api_key')])
+            ->get($this->baseUrl . "/sub-district/{$districtId}");
+
+        return response()->json($response->json()['data'] ?? []);
     }
+
     public function store(Request $request)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'no_telp' => 'required|string|max:20',
-            'province' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'subdistrict' => 'required|string|max:255',
-            'village' => 'required|string|max:255',
-            'postal_code' => 'required|string|max:10',
-            'specific_address' => 'required|string|max:255',
+            'customer_name'    => 'required',
+            'no_telp'          => 'required',
+            'province_name'    => 'required',
+            'subdistrict_id'          => 'required',
+            'city_name'        => 'required',
+            'subdistrict'      => 'required',
+            'village'          => 'required',
+            'postal_code'      => 'required',
+            'specific_address' => 'required',
         ]);
 
         Address::create([
-            'customer_id' => Auth::id(),
-            'customer_name' => $request->customer_name,
-            'no_telp' => $request->no_telp,
-            'province' => $request->province,
-            'city' => $request->city,
-            'subdistrict' => $request->subdistrict,
-            'village' => $request->village,
-            'postal_code' => $request->postal_code,
-            'specific_address' => $request->specific_address,
+            'customer_id'        => Auth::id(),
+            'customer_name'      => $request->customer_name,
+            'no_telp'            => $request->no_telp,
+            'province'           => $request->province_name,
+            'city'               => $request->city_name,
+            'rajaongkir_city_id' => $request->subdistrict_id, // ID 30 (Hulu Sungai Tengah versi Komerce)
+            'subdistrict'        => $request->subdistrict,
+            'village'            => $request->village,
+            'postal_code'        => $request->postal_code,
+            'specific_address'   => $request->specific_address,
         ]);
 
-        return redirect()->route('customer.order');
-    }
-
-    public function edit($id)
-    {
-        $provinces = Provinsi::all();
-        $address = Address::where('customer_id', Auth()->id())
-            ->where('id', $id)
-            ->firstOrFail();
-        return view('user.address.edit', compact('address', 'provinces'));
-    }
-
-    public function update(Request $request, Address $address)
-    {
-
-        $address->customer_name = $request->customer_name;
-        $address->no_telp = $request->no_telp;
-        $address->province = $request->province;
-        $address->city = $request->city;
-        $address->subdistrict = $request->subdistrict;
-        $address->village = $request->village;
-        $address->postal_code = $request->postal_code;
-        $address->specific_address = $request->specific_address;
-
-
-        $address->save();
-        return redirect()->route('customer.order')->with('success', 'Alamat berhasil diperbarui.');
-    }
-
-    public function delete(Address $address)
-    {
-        $address->delete();
-        return redirect()->route('customer.checkout')->with('success','Berhasil menghapus alamar');
+        return redirect()->route('customer.order')->with('success', 'Alamat berhasil disimpan');
     }
 }

@@ -67,110 +67,153 @@
 
                 {{-- Bagian Bawah: Tombol --}}
                 <div class="flex flex-col md:flex-row gap-4">
-                    {{-- Tombol Beli Sekarang --}}
-                    <form action="#" method="POST" class="flex-1">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <button type="submit"
-                            class="w-full border-2 border-black text-black font-bold py-4 rounded-lg text-lg uppercase hover:bg-black hover:text-white transition-all duration-300">
-                            Beli Sekarang
-                        </button>
-                    </form>
 
-                    {{-- Tombol Tambah ke Keranjang --}}
-                    <form action="{{ route('user.cart.store') }}" method="POST" class="flex-1">
-                        @csrf
-                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <button type="submit"
-                            class="w-full bg-gray-300 text-white font-bold py-4 rounded-lg text-lg uppercase hover:bg-[#d93b48] transition-all duration-300">
+                    {{-- ========================= --}}
+                    {{-- TOMBOL BELI SEKARANG --}}
+                    {{-- ========================= --}}
+                    @if (auth('customer')->check())
+                        {{-- SUDAH LOGIN → ke checkout --}}
+                        <a href="{{ route('customer.order') }}"
+                            class="flex-1 text-center border-2 border-black text-black font-bold py-4 rounded-lg text-lg uppercase
+                  hover:bg-black hover:text-white transition-all duration-300">
+                            Beli Sekarang
+                        </a>
+                    @else
+                        {{-- BELUM LOGIN → ke login customer --}}
+                        <a href="{{ route('customer.login') }}"
+                            class="flex-1 text-center border-2 border-black text-black font-bold py-4 rounded-lg text-lg uppercase
+                  hover:bg-black hover:text-white transition-all duration-300">
+                            Beli Sekarang
+                        </a>
+                    @endif
+
+
+                    {{-- ========================= --}}
+                    {{-- TOMBOL TAMBAH KE KERANJANG --}}
+                    {{-- ========================= --}}
+                    @if (auth('customer')->check())
+                        <form action="{{ route('user.cart.store') }}" method="POST" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <button type="submit"
+                                class="w-full bg-gray-800 text-white font-bold py-4 rounded-lg text-lg uppercase
+                       hover:bg-[#d93b48] transition-all duration-300">
+                                Tambah ke Keranjang
+                            </button>
+                        </form>
+                    @else
+                        {{-- BELUM LOGIN → arahkan ke login --}}
+                        <a href="{{ route('customer.login') }}"
+                            class="flex-1 text-center bg-gray-300 text-white font-bold py-4 rounded-lg text-lg uppercase
+                  hover:bg-[#d93b48] transition-all duration-300">
                             Tambah ke Keranjang
-                        </button>
-                    </form>
+                        </a>
+                    @endif
+
                 </div>
+
             </div>
         </div>
 
-      {{-- Produk Lainnya --}}
-@if (!empty($otherProducts) && $otherProducts->count() > 0)
-    <div class="max-w-7xl mx-auto mt-20 px-4 relative">
+        {{-- Produk Lainnya --}}
+        @if (!empty($otherProducts) && $otherProducts->count() > 0)
+            <div class="max-w-7xl mx-auto mt-20 px-4 relative">
 
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Produk Lainnya</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Produk Lainnya</h2>
 
-        {{-- Tombol Panah Kiri --}}
-        <button id="scrollLeft"
-            class="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md hover:bg-gray-100 border border-gray-300 p-2 rounded-full z-10">
-            &#10094;
-        </button>
+                {{-- Tombol Panah Kiri --}}
+                <button id="scrollLeft"
+                    class="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md hover:bg-gray-100 border border-gray-300 p-2 rounded-full z-10">
+                    &#10094;
+                </button>
 
-        {{-- Tombol Panah Kanan --}}
-        <button id="scrollRight"
-            class="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md hover:bg-gray-100 border border-gray-300 p-2 rounded-full z-10">
-            &#10095;
-        </button>
+                {{-- Tombol Panah Kanan --}}
+                <button id="scrollRight"
+                    class="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md hover:bg-gray-100 border border-gray-300 p-2 rounded-full z-10">
+                    &#10095;
+                </button>
 
-        {{-- Scroll Container --}}
-        <div id="productContainer"
-            class="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar">
-            @foreach ($otherProducts as $item)
-                <a href="{{ route('product.detail', $item->id) }}"
-                    class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition transform hover:-translate-y-1 duration-300 p-4 border border-gray-200 min-w-[23%] snap-start flex-shrink-0">
+                {{-- Scroll Container --}}
+                <div id="productContainer"
+                    class="flex gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar">
+                    @foreach ($otherProducts as $item)
+                        <a href="{{ route('product.detail', $item->id) }}"
+                            class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition transform hover:-translate-y-1 duration-300 p-4 border border-gray-200 min-w-[23%] snap-start flex-shrink-0">
 
-                    {{-- Gambar produk --}}
-                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
-                        class="w-full h-52 object-cover rounded-md mb-3">
+                            {{-- Gambar produk --}}
+                            <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->name }}"
+                                class="w-full h-52 object-cover rounded-md mb-3">
 
-                    {{-- Nama produk --}}
-                    <h3 class="font-semibold text-gray-800 text-base leading-snug line-clamp-2 h-12 uppercase">
-                        {{ $item->name }}
-                    </h3>
+                            {{-- Nama produk --}}
+                            <h3 class="font-semibold text-gray-800 text-base leading-snug line-clamp-2 h-12 uppercase">
+                                {{ $item->name }}
+                            </h3>
 
-                    {{-- Harga --}}
-                    <p class="text-[#d93b48] font-extrabold text-lg mt-1">
-                        Rp {{ number_format($item->price, 0, ',', '.') }}
-                    </p>
-                </a>
-            @endforeach
-        </div>
-    </div>
+                            {{-- Harga --}}
+                            <p class="text-[#d93b48] font-extrabold text-lg mt-1">
+                                Rp {{ number_format($item->price, 0, ',', '.') }}
+                            </p>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
 
-    <script>
-        const container = document.getElementById('productContainer');
-        const btnLeft = document.getElementById('scrollLeft');
-        const btnRight = document.getElementById('scrollRight');
-        const itemWidth = container.querySelector('a').offsetWidth + 20; // geser per 1 produk
+            <script>
+                const container = document.getElementById('productContainer');
+                const btnLeft = document.getElementById('scrollLeft');
+                const btnRight = document.getElementById('scrollRight');
+                const itemWidth = container.querySelector('a').offsetWidth + 20; // geser per 1 produk
 
-        btnLeft.addEventListener('click', () => {
-            container.scrollBy({ left: -itemWidth, behavior: 'smooth' });
-        });
+                btnLeft.addEventListener('click', () => {
+                    container.scrollBy({
+                        left: -itemWidth,
+                        behavior: 'smooth'
+                    });
+                });
 
-        btnRight.addEventListener('click', () => {
-            container.scrollBy({ left: itemWidth, behavior: 'smooth' });
-        });
+                btnRight.addEventListener('click', () => {
+                    container.scrollBy({
+                        left: itemWidth,
+                        behavior: 'smooth'
+                    });
+                });
 
-        // Auto scroll setiap 3 detik
-        let autoScroll = setInterval(() => {
-            // Jika sudah sampai ujung kanan, kembali ke awal
-            if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
-                container.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                container.scrollBy({ left: itemWidth, behavior: 'smooth' });
-            }
-        }, 3000);
+                // Auto scroll setiap 3 detik
+                let autoScroll = setInterval(() => {
+                    // Jika sudah sampai ujung kanan, kembali ke awal
+                    if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+                        container.scrollTo({
+                            left: 0,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        container.scrollBy({
+                            left: itemWidth,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 3000);
 
-        // Berhenti auto-scroll ketika mouse di atas container
-        container.addEventListener('mouseenter', () => clearInterval(autoScroll));
-        // Lanjut lagi saat mouse keluar
-        container.addEventListener('mouseleave', () => {
-            autoScroll = setInterval(() => {
-                if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
-                    container.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    container.scrollBy({ left: itemWidth, behavior: 'smooth' });
-                }
-            }, 6000);
-        });
-    </script>
-@endif
+                // Berhenti auto-scroll ketika mouse di atas container
+                container.addEventListener('mouseenter', () => clearInterval(autoScroll));
+                // Lanjut lagi saat mouse keluar
+                container.addEventListener('mouseleave', () => {
+                    autoScroll = setInterval(() => {
+                        if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 10) {
+                            container.scrollTo({
+                                left: 0,
+                                behavior: 'smooth'
+                            });
+                        } else {
+                            container.scrollBy({
+                                left: itemWidth,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 6000);
+                });
+            </script>
+        @endif
 
 
     </section>

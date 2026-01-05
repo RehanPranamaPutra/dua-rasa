@@ -16,6 +16,7 @@ class Address extends Model
         'no_telp',
         'province',
         'city',
+        'rajaongkir_city_id',
         'subdistrict',
         'village',
         'postal_code',

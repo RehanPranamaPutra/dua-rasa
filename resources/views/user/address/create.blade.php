@@ -1,249 +1,262 @@
-<!DOCTYPE html>
-<html lang="en">
+    <!DOCTYPE html>
+    <html lang="id">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tambah Alamat</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-        }
-
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
-        }
-
-        .alert-success {
-            background-color: #d1e7dd;
-            color: #0f5132;
-            border: 1px solid #badbcc;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div style="width: 50%; margin: 50px auto; padding: 20px; border: 1px solid #ccc;">
-        <h2>Tambah Alamat Baru 🗺️</h2>
-
-        {{-- Tampilkan Pesan Error Jika Ada --}}
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul style="margin: 0; padding-left: 20px;">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        {{-- Pesan sukses (jika ingin ditambahkan flash message di controller) --}}
-        @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        {{-- Form Tambah Alamat --}}
-        <form action="{{ route('customer.address.store') }}" method="POST">
-            @csrf
-
-            {{-- Data Pengguna --}}
-            <div class="form-group">
-                <label for="customer_name">Nama Penerima:</label>
-                <input type="text" id="customer_name" name="customer_name">
-            </div>
-
-            <div class="form-group">
-                <label for="no_telp">Nomor Telepon:</label>
-                <input type="text" id="no_telp" name="no_telp">
-            </div>
-
-            <hr>
-            <h3>Data Wilayah</h3>
-
-            {{-- Dropdown Provinsi --}}
-            <div class="form-group">
-                <label for="province">Provinsi:</label>
-                <select id="province-select" name="province_id">
-                    <option value="">Pilih Provinsi</option>
-                    @foreach (\Laravolt\Indonesia\Models\Provinsi::all() as $province)
-                        <option value="{{ $province->code }}">{{ $province->name }}</option>
-                    @endforeach
-                </select>
-                <input type="hidden" id="province-name" name="province">
-            </div>
-
-            {{-- Dropdown Kabupaten/Kota --}}
-            <div class="form-group">
-                <label for="city">Kabupaten/Kota:</label>
-                <select id="city-select" name="city_id" disabled>
-                    <option value="">Pilih Kabupaten/Kota</option>
-                </select>
-                <input type="hidden" id="city-name" name="city">
-            </div>
-
-            {{-- Dropdown Kecamatan --}}
-            <div class="form-group">
-                <label for="subdistrict">Kecamatan:</label>
-                <select id="district-select" name="subdistrict_id" disabled>
-                    <option value="">Pilih Kecamatan</option>
-                </select>
-                <input type="hidden" id="district-name" name="subdistrict">
-            </div>
-
-            {{-- Dropdown Kelurahan/Desa --}}
-            <div class="form-group">
-                <label for="village">Kelurahan/Desa:</label>
-                <select id="village-select" name="village_id" disabled>
-                    <option value="">Pilih Kelurahan/Desa</option>
-                </select>
-                <input type="hidden" id="village-name" name="village">
-            </div>
-
-            {{-- Data Alamat Detail --}}
-            <div class="form-group">
-                <label for="postal_code">Kode Pos:</label>
-                <input type="text" id="postal_code" name="postal_code">
-            </div>
-
-            <div class="form-group">
-                <label for="specific_address">Alamat Lengkap (Jalan, RT/RW, Patokan):</label>
-                <textarea id="specific_address" name="specific_address" rows="3"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Simpan Alamat</button>
-        </form>
-    </div>
-
-    {{-- JavaScript Wilayah --}}
-    <script>
-        $(document).ready(function() {
-
-            function resetAllDependents() {
-                $('#city-select').prop('disabled', true).empty().append(
-                    '<option value="">Pilih Kabupaten/Kota</option>');
-                $('#district-select').prop('disabled', true).empty().append(
-                    '<option value="">Pilih Kecamatan</option>');
-                $('#village-select').prop('disabled', true).empty().append(
-                    '<option value="">Pilih Kelurahan/Desa</option>');
-                $('#city-name').val('');
-                $('#district-name').val('');
-                $('#village-name').val('');
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tambah Alamat</title>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f4f7f6;
             }
 
-            $('#province-select').on('change', function() {
-                var provinceCode = $(this).val();
-                var provinceName = $(this).find('option:selected').text();
+            .container {
+                width: 50%;
+                margin: 50px auto;
+                padding: 30px;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
 
-                $('#province-name').val(provinceName);
-                resetAllDependents();
+            .form-group {
+                margin-bottom: 15px;
+            }
 
-                if (provinceCode) {
-                    $('#city-select').empty().append('<option value="">Loading...</option>');
-                    $.ajax({
-                        url: '{{ route('api.address.cities') }}',
-                        type: 'GET',
-                        data: { province_id: provinceCode },
-                        dataType: 'json',
-                        success: function(cities) {
-                            $('#city-select').prop('disabled', false).empty().append('<option value="">Pilih Kabupaten/Kota</option>');
-                            $.each(cities, function(key, value) {
-                                $('#city-select').append('<option value="' + value.code + '">' + value.name + '</option>');
-                            });
-                        },
-                        error: function(xhr, status, error) {
-                            alert('Terjadi kesalahan saat memuat data Kabupaten/Kota: ' + error);
-                        }
-                    });
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            input,
+            select,
+            textarea {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-sizing: border-box;
+            }
+
+            button {
+                background-color: #b52d39;
+                color: white;
+                padding: 12px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                width: 100%;
+                font-size: 16px;
+            }
+
+            button:hover {
+                background-color: #dc3545;
+            }
+
+            .alert {
+                padding: 10px;
+                margin-bottom: 15px;
+                border-radius: 5px;
+            }
+
+            .alert-danger {
+                background-color: #f8d7da;
+                color: #842029;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="container">
+            <h2>Tambah Alamat Baru 🗺️</h2>
+
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('customer.address.store') }}" method="POST">
+                @csrf
+
+                <div class="form-group">
+                    <label>Nama Penerima:</label>
+                    <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                        placeholder="Contoh: Budi Santoso">
+                </div>
+
+                <div class="form-group">
+                    <label>Nomor Telepon:</label>
+                    <input type="text" name="no_telp" value="{{ old('no_telp') }}" placeholder="0812xxxx">
+                </div>
+
+                <hr>
+
+                <!-- Bagian Provinsi -->
+                <div class="form-group">
+                    <label>Provinsi:</label>
+                    <!-- Tambahkan name="province_id" -->
+                    <select id="province-select" name="province_id">
+                        <option value="">Pilih Provinsi</option>
+                        @foreach ($provinces as $province)
+                            <option value="{{ $province['id'] }}">{{ $province['name'] }}</option>
+                        @endforeach
+                    </select>
+                    <!-- Ubah name menjadi "province_name" sesuai controller -->
+                    <input type="hidden" id="province-name" name="province_name">
+                </div>
+
+                <!-- Bagian Kota -->
+                <div class="form-group">
+                    <label>Kabupaten/Kota:</label>
+                    <!-- Tambahkan name="city_id" -->
+                    <select id="city-select" name="city_id" disabled>
+                        <option value="">Pilih Kabupaten/Kota</option>
+                    </select>
+                    <!-- Ubah name menjadi "city_name" sesuai controller -->
+                    <input type="hidden" id="city-name" name="city_name">
+                </div>
+
+                <!-- Tambahkan name untuk Kecamatan dan Desa jika ingin disimpan juga -->
+                <div class="form-group">
+                    <label>Kecamatan:</label>
+                    <select id="district-select" name="subdistrict_id" disabled>
+                        <option value="">Pilih Kecamatan</option>
+                    </select>
+                    <input type="hidden" id="district-name" name="subdistrict">
+                </div>
+
+                <div class="form-group">
+                    <label>Kelurahan/Desa:</label>
+                    <select id="village-select" name="village" disabled>
+                        <option value="">Pilih Kelurahan/Desa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Kode Pos:</label>
+                    <input type="text" name="postal_code" value="{{ old('postal_code') }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Alamat Lengkap (Patokan/Nama Jalan):</label>
+                    <textarea name="specific_address" rows="3">{{ old('specific_address') }}</textarea>
+                </div>
+
+                <button type="submit">Simpan Alamat Sekarang</button>
+            </form>
+        </div>
+        <!-- Bagian Form Tetap Sama, Hanya Script yang diperbaiki -->
+        <script>
+            $(document).ready(function() {
+                function resetDropdowns(level) {
+                    if (level === 'province') {
+                        $('#city-select').prop('disabled', true).html('<option value="">Pilih Kabupaten/Kota</option>');
+                        $('#district-select').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
+                        $('#village-select').prop('disabled', true).html(
+                            '<option value="">Pilih Kelurahan/Desa</option>');
+                    }
+                    if (level === 'city') {
+                        $('#district-select').prop('disabled', true).html('<option value="">Pilih Kecamatan</option>');
+                        $('#village-select').prop('disabled', true).html(
+                            '<option value="">Pilih Kelurahan/Desa</option>');
+                    }
+                    if (level === 'district') {
+                        $('#village-select').prop('disabled', true).html(
+                            '<option value="">Pilih Kelurahan/Desa</option>');
+                    }
                 }
-            });
 
-            $('#city-select').on('change', function() {
-                var cityCode = $(this).val();
-                var cityName = $(this).find('option:selected').text();
-                $('#city-name').val(cityName);
-                $('#district-select').prop('disabled', true).empty().append('<option value="">Loading...</option>');
-                $('#village-select').prop('disabled', true).empty().append('<option value="">Pilih Kelurahan/Desa</option>');
-                $('#district-name').val('');
-                $('#village-name').val('');
+                // 1. Pilih Provinsi -> Ambil Kota
+                $('#province-select').change(function() {
+                    var id = $(this).val();
+                    var name = $(this).find('option:selected').text();
+                    $('#province-name').val(name);
+                    resetDropdowns('province');
 
-                if (cityCode) {
-                    $.ajax({
-                        url: '{{ route('api.address.districts') }}',
-                        type: 'GET',
-                        data: { city_id: cityCode },
-                        dataType: 'json',
-                        success: function(districts) {
-                            $('#district-select').prop('disabled', false).empty().append('<option value="">Pilih Kecamatan</option>');
-                            $.each(districts, function(key, value) {
-                                $('#district-select').append('<option value="' + value.code + '">' + value.name + '</option>');
+                    if (id) {
+                        $('#city-select').html('<option>Loading...</option>');
+                        // URL disesuaikan dengan prefix /customer
+                        $.get('/customer/get-cities/' + id, function(res) {
+                            $('#city-select').prop('disabled', false).html(
+                                '<option value="">Pilih Kabupaten/Kota</option>');
+                            $.each(res, function(i, item) {
+                                $('#city-select').append('<option value="' + item.id + '">' +
+                                    item.name + '</option>');
                             });
-                        },
-                        error: function(xhr, status, error) {
-                            alert('Terjadi kesalahan saat memuat data Kecamatan: ' + error);
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
 
-            $('#district-select').on('change', function() {
-                var districtCode = $(this).val();
-                var districtName = $(this).find('option:selected').text();
-                $('#district-name').val(districtName);
-                $('#village-select').prop('disabled', true).empty().append('<option value="">Loading...</option>');
-                $('#village-name').val('');
+                // 2. Pilih Kota -> Ambil Kecamatan
+                $('#city-select').change(function() {
+                    var id = $(this).val();
+                    var name = $(this).find('option:selected').text();
+                    $('#city-name').val(name);
+                    resetDropdowns('city');
 
-                if (districtCode) {
-                    $.ajax({
-                        url: '{{ route('api.address.villages') }}',
-                        type: 'GET',
-                        data: { district_id: districtCode },
-                        dataType: 'json',
-                        success: function(villages) {
-                            $('#village-select').prop('disabled', false).empty().append('<option value="">Pilih Kelurahan/Desa</option>');
-                            $.each(villages, function(key, value) {
-                                $('#village-select').append('<option value="' + value.code + '">' + value.name + '</option>');
+                    if (id) {
+                        $('#district-select').html('<option>Loading...</option>');
+                        $.get('/customer/get-districts/' + id, function(res) {
+                            $('#district-select').prop('disabled', false).html(
+                                '<option value="">Pilih Kecamatan</option>');
+                            $.each(res, function(i, item) {
+                                $('#district-select').append('<option value="' + item.id +
+                                    '">' + item.name + '</option>');
                             });
-                        },
-                        error: function(xhr, status, error) {
-                            alert('Terjadi kesalahan saat memuat data Kelurahan/Desa: ' + error);
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
 
-            $('#village-select').on('change', function() {
-                var villageName = $(this).find('option:selected').text();
-                $('#village-name').val(villageName);
-            });
-        });
-    </script>
+                // 3. Pilih Kecamatan -> Ambil Desa
+                // 3. Pilih Kecamatan -> Ambil Desa (Kelurahan/Sub-district)
+                $('#district-select').change(function() {
+                    var id = $(this).val(); // ID Kecamatan
+                    var name = $(this).find('option:selected').text();
+                    $('#district-name').val(name);
+                    resetDropdowns('district');
 
-</body>
-</html>
+                    if (id) {
+                        console.log("Mencari sub-district untuk ID Kecamatan: " + id);
+                        $('#village-select').html('<option>Loading Kelurahan...</option>');
+
+                        $.get("{{ url('customer/get-villages') }}/" + id, function(res) {
+                            console.log("Respon API Sub-district:", res); // LIHAT DI CONSOLE F12
+
+                            $('#village-select').prop('disabled', false).html(
+                                '<option value="">Pilih Kelurahan/Desa</option>');
+
+                            if (res && res.length > 0) {
+                                $.each(res, function(i, item) {
+                                    // Cek kunci yang tersedia: item.name atau item.subdistrict_name
+                                    var villageName = item.name || item.subdistrict_name || item
+                                        .m_subdistrict_name;
+
+                                    if (villageName) {
+                                        $('#village-select').append('<option value="' +
+                                            villageName + '">' + villageName + '</option>');
+                                    }
+                                });
+                            } else {
+                                $('#village-select').html(
+                                    '<option value="">Data tidak ditemukan</option>');
+                            }
+                        }).fail(function(xhr) {
+                            console.log("Error: " + xhr.status);
+                            $('#village-select').html('<option value="">Gagal memuat data</option>');
+                        });
+                    }
+                });
+            });
+        </script>
+    </body>
+
+    </html>

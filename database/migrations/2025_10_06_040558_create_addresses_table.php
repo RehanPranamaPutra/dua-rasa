@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('no_telp');
             $table->string('province');
             $table->string('city');
+            $table->string('rajaongkir_city_id')->nullable();
             $table->string('subdistrict');
             $table->string('village');
             $table->string('postal_code');

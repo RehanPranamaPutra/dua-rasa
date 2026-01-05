@@ -12,28 +12,53 @@ class AddressSeeder extends Seeder
     {
         $customers = UserCustomer::all();
 
-        if ($customers->count() == 0) {
+        if ($customers->isEmpty()) {
             $this->command->error("Seeder gagal: tidak ada data user_customers!");
             return;
         }
 
-        foreach ($customers as $customer) {
-            // Setiap customer kita buat 1–3 alamat
-            $count = fake()->numberBetween(1, 3);
+        // Daftar kota valid RajaOngkir
+        $cities = [
+            [
+                'province' => 'Jawa Barat',
+                'city' => 'Bandung',
+                'rajaongkir_city_id' => 23,
+            ],
+            [
+                'province' => 'DKI Jakarta',
+                'city' => 'Jakarta Selatan',
+                'rajaongkir_city_id' => 152,
+            ],
+            [
+                'province' => 'Jawa Timur',
+                'city' => 'Surabaya',
+                'rajaongkir_city_id' => 444,
+            ],
+        ];
 
-            for ($i = 1; $i <= $count; $i++) {
+        foreach ($customers as $customer) {
+
+            $count = fake()->numberBetween(1, 2);
+
+            for ($i = 0; $i < $count; $i++) {
+
+                $city = collect($cities)->random();
+
                 Address::create([
-                    'customer_id'      => $customer->id,
-                    'customer_name'    => $customer->name,
-                    'no_telp'          => fake()->phoneNumber(),
-                    'province'         => fake()->state(),
-                    'city'             => fake()->city(),
-                    'subdistrict'      => fake()->citySuffix(),
-                    'village'          => fake()->streetName(),
-                    'postal_code'      => fake()->postcode(),
-                    'specific_address' => fake()->address(),
+                    'customer_id'          => $customer->id,
+                    'customer_name'        => $customer->name,
+                    'no_telp'              => fake()->phoneNumber(),
+                    'province'             => $city['province'],
+                    'city'                 => $city['city'],
+                    'rajaongkir_city_id'   => $city['rajaongkir_city_id'],
+                    'subdistrict'          => 'Kecamatan Contoh',
+                    'village'              => 'Kelurahan Contoh',
+                    'postal_code'          => fake()->postcode(),
+                    'specific_address'     => fake()->streetAddress(),
                 ]);
             }
         }
+
+        $this->command->info("Seeder alamat berhasil (RajaOngkir ready) ✅");
     }
 }

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -34,53 +32,94 @@
         .star-rating {
             color: #ffd700;
         }
+
         /* Sembunyikan scrollbar di semua browser */
-.no-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-}
-.no-scrollbar {
-    -ms-overflow-style: none; /* Internet Explorer */
-    scrollbar-width: none; /* Firefox */
-}
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari, Edge */
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* Internet Explorer */
+            scrollbar-width: none;
+            /* Firefox */
+        }
     </style>
-        @yield('styles')
+    @yield('styles')
 </head>
 
 <body class="font-sans bg-white text-gray-800">
 
     {{-- 🌟 NAVBAR --}}
+    {{-- 🌟 NAVBAR --}}
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="{{route('filament.admin.auth.login')}}" class="flex items-center space-x-2">
+
+            {{-- LOGO --}}
+            <a href="{{ route('landing-page') }}" class="flex items-center space-x-2">
                 <img src="{{ asset('asset/logo/image.png') }}" alt="Logo" class="h-12 w-auto">
-                <h1 class="font-extrabold text-2xl">
-                    <span class="text-duarasa-red">DUARASA</span><span class="text-gray-500"> Kitchen</span>
+                <h1 class="font-extrabold text-2xl uppercase">
+                    <span class="text-duarasa-red">DUARASA</span>
+                    <span class="text-gray-500 text-lg"> Kitchen</span>
                 </h1>
             </a>
 
-            <div class="hidden md:flex space-x-6">
-                    <a href="{{ route('landing-page') }}#menu" class="hover:text-duarasa-red">Menu</a>
-                    <a href="{{ route('landing-page') }}#why-us" class="hover:text-duarasa-red">Kenapa Kami?</a>
-                    <a href="{{ route('landing-page') }}#testimonials" class="hover:text-duarasa-red">Testimoni</a>
-                    <a href="{{ route('landing-page') }}#contact" class="hover:text-duarasa-red">Kontak</a>
+            {{-- MENU TENGAH --}}
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="{{ route('landing-page') }}#menu" class="hover:text-duarasa-red transition">Menu</a>
+                <a href="{{ route('landing-page') }}#why-us" class="hover:text-duarasa-red transition">Kenapa Kami?</a>
+                <a href="{{ route('landing-page') }}#testimonials"
+                    class="hover:text-duarasa-red transition">Testimoni</a>
+                <a href="{{ route('landing-page') }}#contact" class="hover:text-duarasa-red transition">Kontak</a>
+
+                {{-- MENU PESANAN: Hanya muncul jika Login --}}
+                @auth('customer')
+                    <a href="{{ route('orders.history') }}"
+                        class="text-duarasa-red font-bold hover:text-duarasa-darkred transition border-l pl-4 border-gray-200">
+                        Pesanan Saya
+                    </a>
+                @endauth
             </div>
 
-            <div class="hidden md:flex items-center space-x-4">
-                @if (auth('customer')->check())
-                    <a href="/cart" class="relative hover:text-duarasa-red">
-                        🛒
-                        <span class="absolute -top-2 -right-2 text-xs bg-duarasa-red text-white px-1.5 rounded-full">2</span>
+            {{-- SISI KANAN (KERANJANG & USER) --}}
+            <div class="hidden md:flex items-center space-x-5">
+                @auth('customer')
+                    {{-- KERANJANG DINAMIS --}}
+                    <a href="{{ route('user.cart.index') }}" class="relative group">
+                        <span class="text-2xl">🛒</span>
+                        {{-- Badge angka muncul jika ada isi --}}
+                        @if ($cartCount > 0)
+                            <span
+                                class="absolute -top-2 -right-2 text-[10px] bg-duarasa-red text-white w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
                     </a>
-                    <a href="/profile" class="hover:text-duarasa-red">👤</a>
+
+                    {{-- USER INFO --}}
+                    <div class="flex flex-col items-end border-l pl-5 border-gray-200">
+                        <span class="text-xs text-gray-400 font-medium">Halo,</span>
+                        <span class="text-sm font-bold text-gray-800">{{ auth('customer')->user()->name }}</span>
+                    </div>
+
+                    {{-- LOGOUT --}}
+                    <form action="{{ route('customer.logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="text-gray-400 hover:text-red-500 transition p-2">
+                            <i class="fas fa-sign-out-alt text-xl"></i>
+                        </button>
+                    </form>
                 @else
-                    <a href="{{route('customer.login')}}"
-                        class="bg-duarasa-red text-white px-4 py-2 rounded-lg hover:bg-duarasa-darkred transition">
-                        Login / Register
+                    <a href="{{ route('customer.login') }}"
+                        class="bg-duarasa-red text-white px-6 py-2.5 rounded-xl hover:bg-duarasa-darkred transition shadow-lg shadow-red-100 font-bold">
+                        Login
                     </a>
-                @endif
+                @endauth
             </div>
         </div>
     </nav>
+
 
     {{-- 📄 CONTENT --}}
     @yield('content')
@@ -129,8 +168,7 @@
             slides[index].classList.add('opacity-100');
         }, 3500);
     </script>
-        @yield('scripts')
+    @yield('scripts')
 </body>
+
 </html>
-
-

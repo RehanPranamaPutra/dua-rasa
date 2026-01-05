@@ -11,6 +11,7 @@ class Order extends Model
         'address_id',
         'invoice_number',
         'total_price',
+        'shipping_service',
         'shipping_cost',
         'order_status',
         'payment_status'
@@ -38,10 +39,5 @@ class Order extends Model
     public function details()
     {
         return $this->hasMany(OrderDetail::class, 'order_id');
-    }
-
-    public function getTotalPriceAttribute(): float
-    {
-        return $this->details()->sum('total');
     }
 }

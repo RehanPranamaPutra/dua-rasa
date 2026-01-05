@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Order </title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <script>
         tailwind.config = {
@@ -13,9 +14,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309'
+                            500: '#f8f8e7',
+                            600: '#dc3545',
+                            700: '#b52d39'
                         }
                     }
                 }
@@ -67,27 +68,46 @@
                     </div>
                     <div class="p-6 space-y-6">
                         @foreach ($order->details as $detail)
-                            <div class="flex gap-4">
-                                <!-- Gambar Produk -->
-                                <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border">
-                                    <img src="{{ asset('storage/' . $detail->product->image) }}"
-                                        class="w-full h-full object-cover" alt="Produk">
-                                </div>
+                            @if ($detail->product)
+                                <div class="flex gap-4">
+                                    <!-- Gambar Produk -->
+                                    <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border">
+                                        <img src="{{ asset('storage/' . $detail->product->image) }}"
+                                            class="w-full h-full object-cover" alt="Produk">
+                                    </div>
 
-                                <!-- Info Produk -->
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-800 text-base">{{ $detail->product_name }}</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        {{ $detail->amount }} x Rp {{ number_format($detail->price, 0, ',', '.') }}
-                                    </p>
-                                </div>
+                                    <!-- Info Produk -->
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-gray-800 text-base">{{ $detail->product_name }}</h3>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            {{ $detail->amount }} x Rp {{ number_format($detail->price, 0, ',', '.') }}
+                                        </p>
+                                    </div>
 
-                                <!-- Total Harga Item -->
-                                <div class="text-right">
-                                    <p class="font-bold text-gray-800">Rp
-                                        {{ number_format($detail->total, 0, ',', '.') }}</p>
+                                    <!-- Total Harga Item -->
+                                    <div class="text-right">
+                                        <p class="font-bold text-gray-800">Rp
+                                            {{ number_format($detail->total, 0, ',', '.') }}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            @else
+                                {{-- Tampilan jika produk telah dihapus --}}
+                                <div class="flex gap-4 items-center bg-red-50 p-4 rounded-lg">
+                                    <div
+                                        class="w-16 h-16 flex items-center justify-center bg-gray-200 rounded-lg shrink-0 border">
+                                        <i class="fas fa-exclamation-triangle text-red-400"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="font-bold text-gray-800 text-base line-through">
+                                            {{ $detail->product_name }}</h3>
+                                        <p class="text-sm text-red-600 mt-1">Produk ini sudah tidak tersedia.</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-gray-800 line-through">Rp
+                                            {{ number_format($detail->total, 0, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>
@@ -122,11 +142,13 @@
                     <h3 class="font-bold text-lg mb-4 text-gray-800">Rincian Pembayaran</h3>
 
                     <div class="space-y-3 text-sm text-gray-600 pb-4 border-b">
+                        @php
+                            // Hitung ulang subtotal barang dari rincian produk
+                            $subtotalHargaBarang = $order->details->sum('total');
+                        @endphp
                         <div class="flex justify-between">
                             <span>Total Harga Barang</span>
-                            <!-- Kurangi total_price dengan shipping_cost -->
-                            <span>Rp
-                                {{ number_format($order->total_price - $order->shipping_cost, 0, ',', '.') }}</span>
+                            <span>Rp {{ number_format($subtotalHargaBarang, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Biaya Pengiriman</span>
@@ -137,12 +159,13 @@
                     <div class="flex justify-between items-center py-4 mb-4">
                         <span class="text-lg font-bold text-gray-800">Total Bayar</span>
                         <span class="text-xl font-bold text-brand-600">Rp
-                            {{ number_format($order->total_price + $order->shipping_cost, 0, ',', '.') }}</span>
+                            {{ number_format($subtotalHargaBarang + $order->shipping_cost, 0, ',', '.') }}</span>
                     </div>
 
                     <!-- TOMBOL BAYAR (Placeholder) -->
                     @if ($order->payment_status != 'Berhasil' && isset($snapToken))
-                        <button id="pay-button" class="...">
+                        <button id="pay-button"
+                            class="w-full bg-brand-600 text-white font-bold py-3.5 rounded-lg hover:bg-brand-700 transition-all flex justify-center items-center group">
                             <i class="fas fa-lock mr-2"></i> Bayar Sekarang
                         </button>
                         <p class="text-xs text-center text-gray-400 mt-3">
@@ -157,19 +180,47 @@
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}">
     </script>
     <script type="text/javascript">
-        document.getElementById('pay-button').onclick = function() {
-            // SnapToken acquired from previous step
-            snap.pay('{{ $snapToken }}', {
-                // Optional
-                onSuccess: function(result) {
-                    window.location.href = "{{ route('payment.success') }}"
-                },
-                // Optional
-                onPending: function(result) {},
-                // Optional
-                onError: function(result) {}
+        // 1. Deteksi jika user baru saja bayar (Redirect dari Midtrans)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('payment_success')) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pembayaran Berhasil!',
+                text: 'Pesanan Anda sedang kami proses.',
+                confirmButtonColor: '#dc3545',
             });
-        };
+            // Bersihkan URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 2. Logic Tombol Bayar
+        @if (isset($snapToken))
+            document.getElementById('pay-button').onclick = function() {
+                snap.pay('{{ $snapToken }}', {
+                    onSuccess: function(result) {
+                        window.location.href =
+                            "{{ route('orders.show', $order->invoice_number) }}?payment_success=1";
+                    },
+                    onPending: function(result) {
+                        Swal.fire('Info', 'Selesaikan pembayaran Anda segera.', 'info');
+                    },
+                    onError: function(result) {
+                        Swal.fire('Gagal', 'Pembayaran gagal, silakan coba lagi.', 'error');
+                    }
+                });
+            };
+        @endif
+        @if (session('success') || request()->query('payment_success') == 1 || $order->payment_status == 'Berhasil')
+            Swal.fire({
+                icon: 'success',
+                title: 'Pembayaran Berhasil!',
+                text: 'Terima kasih, pesanan Anda sedang kami proses.',
+                confirmButtonColor: '#dc3545',
+            }).then(() => {
+                // Hilangkan parameter di URL agar tidak muncul terus
+                window.history.replaceState({}, document.title, window.location.pathname);
+            });
+        @endif
     </script>
 
 </body>

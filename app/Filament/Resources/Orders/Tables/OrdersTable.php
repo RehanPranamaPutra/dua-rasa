@@ -46,10 +46,11 @@ class OrdersTable
                     ->label('Status')
                     ->badge()
                     ->colors([
-                        'primary' => 'pending',
-                        'warning' => 'processing',
-                        'success' => 'completed',
-                        'danger' => 'cancelled',
+                        'gray' => 'new',            // Status awal (netral)
+                        'warning' => 'processing',  // Sedang dikerjakan (kuning/amber)
+                        'info' => 'shipped',        // Sedang dikirim (biru)
+                        'success' => 'delivered',   // Selesai/Sampai (hijau)
+                        'danger' => 'cancelled',    // Dibatalkan (merah)
                     ])
                     ->searchable(),
 

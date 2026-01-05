@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('address_id')->constrained('addresses');
             $table->string('invoice_number')->unique();
             $table->decimal('total_price',12,2);
+            $table->string('shipping_service')->nullable();
             $table->decimal('shipping_cost',12,2);
             $table->enum('order_status', ['new', 'processing', 'shipped', 'delivered', 'cancelled'])->default('new');
             $table->enum('payment_status',['Pending','Berhasil','Gagal','Expired','Refound'])->default('Pending');
