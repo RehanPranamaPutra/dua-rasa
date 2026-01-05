@@ -89,14 +89,26 @@
                         </a>
 
                         {{-- Tombol Tambah ke Keranjang --}}
-                        <form action="{{ route('user.cart.store') }}" method="POST" class="w-full">
-                            @csrf
-                            <input type="hidden" name="product_id" value="{{ $product->id }}">
-                            <button type="submit"
-                                class="w-full bg-duarasa-red text-white font-semibold px-4 py-2 rounded-lg hover:bg-duarasa-darkred transition duration-300 flex items-center justify-center gap-2">
-                                🛒 <span></span>
-                            </button>
-                        </form>
+                        @auth('customer')
+                            {{-- SUDAH LOGIN → TETAP TAMBAH KE KERANJANG --}}
+                            <form action="{{ route('user.cart.store') }}" method="POST" class="w-full">
+                                @csrf
+                                <input type="hidden" name=  "product_id" value="{{ $product->id }}">
+                                <button type="submit"
+                                    class="w-full bg-duarasa-red text-white font-semibold px-4 py-2 rounded-lg
+                   hover:bg-duarasa-darkred transition duration-300 flex items-center justify-center gap-2">
+                                    🛒 <span>Tambah</span>
+                                </button>   
+                            </form>
+                        @else
+                            {{-- BELUM LOGIN → KE LOGIN --}}
+                            <a href="{{ route('customer.login') }}"
+                                class="w-full bg-duarasa-red text-white font-semibold px-4 py-2 rounded-lg
+               hover:bg-duarasa-darkred transition duration-300 flex items-center justify-center gap-2">
+                                🛒 <span>Tambah</span>
+                            </a>
+                        @endauth
+
                     </div>
                 </div>
             @endforeach

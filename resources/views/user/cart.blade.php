@@ -132,7 +132,10 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                    class="text-red-500 hover:text-red-700 transition">
+
+                                                    class="text-red-500 hover:text-red-700 transition"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini dari keranjang?');">
+
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"

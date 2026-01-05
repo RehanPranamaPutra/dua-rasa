@@ -96,9 +96,11 @@ class OrderForm
                 ->label('Status Pesanan')
                 ->options([
                     'pending' => 'Pending',
-                    'processing' => 'Processing',
-                    'completed' => 'Completed',
-                    'cancelled' => 'Cancelled',
+                    'shipped' => 'Dikirm',
+                    'processing' => 'Diproses',
+
+                    'delivered' => 'Selesai',
+                    'cancelled' => 'Batal',
                 ])
                 ->required(),
         ];

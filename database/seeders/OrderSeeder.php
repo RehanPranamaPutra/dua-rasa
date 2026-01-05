@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Order;
 use App\Models\OrderDetail;
-use App\Models\Payment;
 use App\Models\Product;
 use App\Models\UserCustomer;
 use App\Models\Address;
@@ -31,18 +30,22 @@ class OrderSeeder extends Seeder
             $address = $addresses->random();
 
             // RANDOM ORDER STATUS
-            // RANDOM ORDER STATUS
             $status = fake()->randomElement(['new', 'processing', 'shipped', 'delivered', 'cancelled']);
 
+            // RANDOM SHIPPING SERVICE & COST
+            $shippingService = fake()->randomElement(['JNE', 'TIKI', 'POS', 'SiCepat']);
+            $shippingCost = fake()->numberBetween(10000, 30000);
 
             // CREATE ORDER
             $order = Order::create([
-                'customer_id'   => $customer->id,
-                'address_id'    => $address->id,
-                'invoice_number' => 'INV-' . date('Y') . '-' . str_pad($i, 5, '0', STR_PAD_LEFT),
-                'total_price'   => 0, // akan update setelah detail
-                'shipping_cost' => fake()->numberBetween(10000, 30000),
-                'order_status'  => $status,
+                'customer_id'     => $customer->id,
+                'address_id'      => $address->id,
+                'invoice_number'  => 'INV-' . date('Y') . '-' . str_pad($i, 5, '0', STR_PAD_LEFT),
+                'total_price'     => 0, // akan update setelah detail
+                'shipping_service'=> $shippingService,
+                'shipping_cost'   => $shippingCost,
+                'order_status'    => $status,
+                'payment_status'  => 'Pending', // default sementara
             ]);
 
             // RANDOM ORDER ITEMS
@@ -57,32 +60,26 @@ class OrderSeeder extends Seeder
                 $total += $subTotal;
 
                 OrderDetail::create([
-                    'order_id'    => $order->id,
-                    'product_id'  => $product->id,
-                    'address_id'  => $address->id,
+                    'order_id'     => $order->id,
+                    'product_id'   => $product->id,
+                    'address_id'   => $address->id,
                     'product_name' => $product->name,
-                    'price'       => $product->price,
-                    'amount'      => $amount,
-                    'total'       => $subTotal,
+                    'price'        => $product->price,
+                    'amount'       => $amount,
+                    'total'        => $subTotal,
                 ]);
             }
 
-            // UPDATE TOTAL PRICE
+            // UPDATE TOTAL PRICE (produk + ongkir)
             $order->update([
-                'total_price' => $total,
+                'total_price'    => $total + $shippingCost,
             ]);
 
-            // PAYMENT MOCK
+            // PAYMENT MOCK: update payment_status langsung di order
             $isPaid = fake()->boolean(70); // 70% sukses
-
-            // Payment::create([
-            //     'order_id'       => $order->id,
-            //     'method'         => fake()->randomElement(['Transfer Bank', 'E-Wallet', 'Dana', 'Ovo']),
-            //     'transaction_code' => Str::upper(Str::random(10)),
-            //     'amount'         => $total + $order->shipping_cost,
-            //     'payment_status' => $isPaid ? 'Berhasil' : 'Pending',
-            //     'payment_time'   => $isPaid ? now() : null,
-            // ]);
+            $order->update([
+                'payment_status' => $isPaid ? 'Berhasil' : 'Pending',
+            ]);
         }
     }
 }
