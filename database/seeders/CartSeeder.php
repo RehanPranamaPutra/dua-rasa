@@ -15,7 +15,7 @@ class CartSeeder extends Seeder
      */
     public function run(): void
     {
-         // Pastikan ada minimal 1 user customer
+        // Pastikan ada minimal 1 user customer
         $user = UserCustomer::first() ?? UserCustomer::create([
             'name' => 'Customer Test',
             'email' => 'customer@test.com',
@@ -63,7 +63,8 @@ class CartSeeder extends Seeder
             Cart::create([
                 'customer_id' => $user->id,
                 'product_id' => $product->id,
-                'quantity' => $index + 1, // contoh variasi quantity
+                'amount' => $index + 1, // contoh variasi amount
+                'total' => $product->price * ($index + 1),
             ]);
         }
 
