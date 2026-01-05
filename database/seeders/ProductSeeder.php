@@ -14,7 +14,7 @@ class ProductSeeder extends Seeder
 
         // Gambar default
         // kalau mau tukar foto sesuaiakan dengan nama file di storage/app/public/products satu saja untuk contoh
-        $imagePath = 'products/01K928TNP975PAD5YWQCSPY0XV.jpg';
+        $imagePath = 'products/01KE66X2RN6AM5GVCWPWKGXYV8.jpg';
 
         foreach ($categories as $category) {
             for ($i = 1; $i <= 5; $i++) {

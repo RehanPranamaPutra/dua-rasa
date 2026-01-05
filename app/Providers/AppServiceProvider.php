@@ -22,13 +22,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('*', function ($view) {
-            if (Auth::guard('customer')->check()) {
-                $count = Cart::where('customer_id', Auth::guard('customer')->id())->sum('quantity');
-                $view->with('cartCount', $count);
-            } else {
-                $view->with('cartCount', 0);
-            }
-        });
+        // View::composer('*', function ($view) {
+        //     if (Auth::guard('customer')->check()) {
+        //         $count = Cart::where('customer_id', Auth::guard('customer')->id())->sum('shooping_cart');
+        //         $view->with('cartCount', $count);
+        //     } else {
+        //         $view->with('cartCount', 0);
+        //     }
+        // });
     }
 }

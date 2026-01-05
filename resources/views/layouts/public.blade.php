@@ -57,7 +57,7 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
 
             {{-- LOGO --}}
-            <a href="{{ route('landing-page') }}" class="flex items-center space-x-2">
+            <a href="{{ route('filament.admin.auth.login') }}" class="flex items-center space-x-2">
                 <img src="{{ asset('asset/logo/image.png') }}" alt="Logo" class="h-12 w-auto">
                 <h1 class="font-extrabold text-2xl uppercase">
                     <span class="text-duarasa-red">DUARASA</span>
@@ -89,12 +89,12 @@
                     <a href="{{ route('user.cart.index') }}" class="relative group">
                         <span class="text-2xl">🛒</span>
                         {{-- Badge angka muncul jika ada isi --}}
-                        @if ($cartCount > 0)
+                        {{-- @if ($cartCount > 0)
                             <span
                                 class="absolute -top-2 -right-2 text-[10px] bg-duarasa-red text-white w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-white">
                                 {{ $cartCount }}
                             </span>
-                        @endif
+                        @endif --}}
                     </a>
 
                     {{-- USER INFO --}}
