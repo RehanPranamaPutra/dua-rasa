@@ -103,8 +103,7 @@
                                                 <div class="flex items-start justify-between gap-3">
                                                     <div class="flex items-start gap-3">
                                                         <div class="mt-1 text-brand-600">
-                                                            <i
-                                                                class="fas fa-check-circle hidden peer-checked:block"></i>
+                                                            <i class="fas fa-check-circle hidden peer-checked:block"></i>
                                                             <i class="far fa-circle block peer-checked:hidden"></i>
                                                         </div>
                                                         <div>
@@ -117,7 +116,6 @@
                                                                 {{ $address->province }}
                                                             </p>
                                                             <p class="text-xs text-gray-500 mt-1">
-                                                                {{ $address->customer_name }} ·
                                                                 {{ $address->no_telp }}
                                                             </p>
                                                         </div>
@@ -142,24 +140,31 @@
                             @foreach ($cartItems as $item)
                                 <div class="flex gap-4">
                                     <div class="w-16 h-16 bg-gray-200 rounded-md overflow-hidden shrink-0">
-                                        <img src="{{ asset('storage/' . $item->product->image) }}"
-                                            class="w-full h-full object-cover">
+                                        @if ($item->product->image)
+                                            <img src="{{ asset('storage/' . $item->product->image) }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="flex items-center justify-center h-full text-gray-400">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="flex-1">
                                         <h3 class="font-semibold text-gray-800 text-sm">{{ $item->product->name }}</h3>
-                                        <p class="text-xs text-gray-500 mt-1">{{ $item->quantity }} x Rp
+                                        <!-- FIX: Menggunakan amount -->
+                                        <p class="text-xs text-gray-500 mt-1">{{ $item->amount }} x Rp
                                             {{ number_format($item->product->price, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="text-right">
+                                        <!-- FIX: Menggunakan amount -->
                                         <p class="font-medium text-gray-800 text-sm">Rp
-                                            {{ number_format($item->product->price * $item->quantity, 0, ',', '.') }}
+                                            {{ number_format($item->product->price * $item->amount, 0, ',', '.') }}
                                         </p>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                     </div>
-
                 </div>
 
                 <!-- KOLOM KANAN: RINGKASAN -->
@@ -181,8 +186,9 @@
                         </div>
 
                         @php
-                            $subtotal = $cartItems->sum(fn($item) => $item->product->price * $item->quantity);
-                            $totalWeight = ceil($cartItems->sum(fn($item) => $item->product->weight * $item->quantity) * 1000);
+                            // FIX: Perhitungan Subtotal dan Berat menggunakan 'amount'
+                            $subtotal = $cartItems->sum(fn($item) => $item->product->price * $item->amount);
+                            $totalWeight = ceil($cartItems->sum(fn($item) => ($item->product->weight ?? 1) * $item->amount) * 1000);
                             if ($totalWeight < 1) { $totalWeight = 1000; }
                         @endphp
 
@@ -190,13 +196,14 @@
 
                         <div class="space-y-3 text-sm text-gray-600 pb-4 border-b">
                             <div class="flex justify-between">
-                                <span>Total Harga ({{ $cartItems->count() }} Barang)</span>
+                                <!-- FIX: Menghitung total kuantitas barang -->
+                                <span>Total Harga ({{ $cartItems->sum('amount') }} Barang)</span>
                                 <span id="subtotal-amount" data-subtotal="{{ $subtotal }}">Rp
                                     {{ number_format($subtotal, 0, ',', '.') }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span>Ongkos Kirim</span>
-                                <span id="shipping-amount">Rp 0</span>
+                                <span id="shipping-amount" class="font-bold text-gray-800">Rp 0</span>
                             </div>
                         </div>
 
@@ -211,7 +218,6 @@
                             <span>Buat Pesanan</span>
                             <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                         </button>
-
                     </div>
                 </div>
 
@@ -239,7 +245,7 @@
                 var destination = selectedAddress.attr('data-rajaongkir');
 
                 if (!destination || destination === "" || destination === "undefined") {
-                    alert("ID Kota tujuan tidak ditemukan pada alamat ini. Mohon gunakan alamat lain atau buat alamat baru.");
+                    shippingOptionsContainer.html('<p class="text-xs text-red-500">Pilih alamat pengiriman yang valid.</p>');
                     return;
                 }
 
@@ -266,21 +272,21 @@
                             $.each(res, function(i, item) {
                                 var serviceId = 'service-' + i;
                                 var card = `
-                <label for="${serviceId}" class="flex items-center p-3 mb-2 border rounded-lg cursor-pointer hover:border-brand-500 bg-white transition-all shadow-sm">
-                    <input type="radio" id="${serviceId}" name="shipping_option"
-                        value="${item.value}"
-                        data-service-name="${item.service}"
-                        class="mr-3 w-4 h-4 text-brand-600">
-                    <div class="flex justify-between w-full items-center">
-                        <div class="pr-2">
-                            <span class="font-bold text-gray-800 text-sm">${item.service}</span>
-                            <p class="text-[10px] text-gray-500 uppercase">${item.description}</p>
-                            <p class="text-[10px] text-brand-600">Estimasi: ${item.etd} Hari</p>
-                        </div>
-                        <span class="font-bold text-sm text-gray-800">${formatRupiah(item.value)}</span>
-                    </div>
-                </label>
-            `;
+                                    <label for="${serviceId}" class="flex items-center p-3 mb-2 border rounded-lg cursor-pointer hover:border-brand-500 bg-white transition-all shadow-sm">
+                                        <input type="radio" id="${serviceId}" name="shipping_option"
+                                            value="${item.value}"
+                                            data-service-name="${item.service}"
+                                            class="mr-3 w-4 h-4 text-brand-600">
+                                        <div class="flex justify-between w-full items-center">
+                                            <div class="pr-2">
+                                                <span class="font-bold text-gray-800 text-sm">${item.service}</span>
+                                                <p class="text-[10px] text-gray-500 uppercase">${item.description}</p>
+                                                <p class="text-[10px] text-brand-600">Estimasi: ${item.etd} Hari</p>
+                                            </div>
+                                            <span class="font-bold text-sm text-gray-800">${formatRupiah(item.value)}</span>
+                                        </div>
+                                    </label>
+                                `;
                                 shippingOptionsContainer.append(card);
                             });
 

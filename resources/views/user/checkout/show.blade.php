@@ -213,7 +213,7 @@
         @if (session('success') || request()->query('payment_success') == 1 || $order->payment_status == 'Berhasil')
             Swal.fire({
                 icon: 'success',
-                title: 'Pembayaran Berhasil!',
+                title: 'pesanan Berhasil!',
                 text: 'Terima kasih, pesanan Anda sedang kami proses.',
                 confirmButtonColor: '#dc3545',
             }).then(() => {

@@ -80,6 +80,37 @@ class CartController extends Controller
             ->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
 
+    // Tambahkan method ini di dalam class CartController
+public function update(Request $request)
+{
+    if (!Auth::guard('customer')->check()) {
+        return response()->json(['message' => 'Unauthorized'], 401);
+    }
+
+    $cart = Cart::where('id', $request->cart_id)
+                ->where('customer_id', Auth::guard('customer')->id())
+                ->first();
+
+    if ($cart) {
+        $product = $cart->product;
+        $cart->amount = $request->amount;
+        $cart->total = $product->price * $request->amount;
+        $cart->save();
+
+        // Hitung total seluruh keranjang untuk dikirim balik ke JS
+        $totalAll = Cart::where('customer_id', Auth::guard('customer')->id())
+                    ->get()
+                    ->sum(fn($item) => $item->product->price * $item->amount);
+
+        return response()->json([
+            'success' => true,
+            'subtotal' => number_format($cart->total, 0, ',', '.'),
+            'totalAll' => number_format($totalAll, 0, ',', '.')
+        ]);
+    }
+
+    return response()->json(['success' => false], 404);
+}   
     /**
      * Hapus produk dari keranjang
      */

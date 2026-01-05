@@ -10,7 +10,6 @@ use App\Models\Payment;
 use App\Models\OrderDetail;
 use Illuminate\Support\Str;
 use Midtrans\Config;
-use Midtrans\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,31 +21,26 @@ class OrderController extends Controller
 {
     public function index()
     {
-        // 1. Cek Login Customer
         if (!Auth::guard('customer')->check()) {
             return redirect()->route('customer.login')->with('error', 'Login dulu.');
         }
 
-        // 2. Ambil User dari Guard Customer
         $user = Auth::guard('customer')->user();
 
-        // 3. Ambil Keranjang berdasarkan customer_id
+        // Mengambil item keranjang (Pastikan menggunakan 'amount' sesuai database)
         $cartItems = Cart::with('product')
             ->where('customer_id', $user->id)
             ->get();
 
-        // 4. Cek apakah kosong
         if ($cartItems->isEmpty()) {
             return redirect()->route('user.cart.index')->with('error', 'Keranjang Anda kosong.');
         }
 
-        // 5. Ambil Alamat
         $addresses = Address::where('customer_id', $user->id)->get();
 
         return view('user.checkout.index', compact('addresses', 'cartItems'));
     }
 
-    // PROSES SIMPAN ORDER
     public function store(Request $request)
     {
         $request->validate([
@@ -56,23 +50,20 @@ class OrderController extends Controller
         ]);
 
         $user = Auth::guard('customer')->user();
-
-        $cartItems = Cart::with('product')
-            ->where('customer_id', $user->id)
-            ->get();
+        $cartItems = Cart::with('product')->where('customer_id', $user->id)->get();
 
         if ($cartItems->isEmpty()) {
             return redirect()->back()->with('error', 'Keranjang belanja kosong.');
         }
 
-        $subtotal = $cartItems->sum(fn($item) => $item->product->price * $item->quantity);
-        $shippingCost = (int) $request->shipping_cost; // Gunakan nilai dari request
+        // HITUNG TOTAL (Gunakan 'amount')
+        $subtotal = $cartItems->sum(fn($item) => $item->product->price * $item->amount);
+        $shippingCost = (int) $request->shipping_cost;
         $totalPrice = $subtotal + $shippingCost;
 
         try {
             DB::beginTransaction();
 
-            // Create Order
             $order = Order::create([
                 'customer_id'      => $user->id,
                 'address_id'       => $request->address_id,
@@ -84,7 +75,6 @@ class OrderController extends Controller
                 'payment_status'   => 'Pending',
             ]);
 
-            // Create Details
             foreach ($cartItems as $item) {
                 OrderDetail::create([
                     'order_id'     => $order->id,
@@ -92,17 +82,14 @@ class OrderController extends Controller
                     'address_id'   => $request->address_id,
                     'product_name' => $item->product->name,
                     'price'        => $item->product->price,
-                    'amount'       => $item->quantity,
-                    'total'        => $item->product->price * $item->quantity,
+                    'amount'       => $item->amount, // Disamakan
+                    'total'        => $item->product->price * $item->amount,
                 ]);
             }
 
-
-
-            // Hapus Keranjang
             Cart::where('customer_id', $user->id)->delete();
 
-            DB::commit(); // ← HARUS SAMPAI SINI!
+            DB::commit();
 
             return redirect()->route('orders.show', $order->invoice_number)
                 ->with('success', 'Pesanan berhasil dibuat!');
@@ -113,51 +100,34 @@ class OrderController extends Controller
         }
     }
 
-    // FUNCTION SHOW (Detail)
-  public function show($invoice)
+    public function show($invoice)
     {
-        // 1. Ambil data Order
         $order = Order::with(['details.product', 'address', 'payment'])
             ->where('invoice_number', $invoice)
             ->where('customer_id', Auth::guard('customer')->id())
             ->firstOrFail();
 
-        // 2. LOGIKA CEK STATUS MANUAL (Penting untuk Localhost)
+        // Cek status ke Midtrans jika masih pending
         if ($order->payment_status == 'Pending') {
             try {
                 $serverKey = config('midtrans.server_key');
-                // Menggunakan Sandbox URL untuk testing
-                $url = "https://api.sandbox.midtrans.com/v2/{$invoice}/status";
+                $url = config('midtrans.is_production')
+                    ? "https://api.midtrans.com/v2/{$invoice}/status"
+                    : "https://api.sandbox.midtrans.com/v2/{$invoice}/status";
 
-                $response = Http::withBasicAuth($serverKey, '')
-                    ->get($url);
+                $response = Http::withBasicAuth($serverKey, '')->get($url);
 
                 if ($response->successful()) {
                     $res = $response->json();
                     $trStatus = $res['transaction_status'] ?? '';
 
                     if (in_array($trStatus, ['settlement', 'capture', 'success'])) {
-                        DB::beginTransaction();
-                        try {
-                            $order->update([
-                                'payment_status' => 'Berhasil',
-                                'order_status'   => 'processing'
-                            ]);
-
-                            Payment::updateOrCreate(
-                                ['order_id' => $order->id],
-                                [
-                                    'payment_status' => 'Berhasil',
-                                    'payment_time'   => now(),
-                                    'method'         => $res['payment_type'] ?? 'Midtrans Snap'
-                                ]
-                            );
-                            DB::commit();
-                            $order->refresh();
-                        } catch (\Exception $e) {
-                            DB::rollBack();
-                            Log::error("Update DB Error: " . $e->getMessage());
-                        }
+                        $order->update(['payment_status' => 'Berhasil', 'order_status' => 'processing']);
+                        Payment::updateOrCreate(
+                            ['order_id' => $order->id],
+                            ['payment_status' => 'Berhasil', 'payment_time' => now(), 'method' => $res['payment_type'] ?? 'Midtrans Snap']
+                        );
+                        $order->refresh();
                     }
                 }
             } catch (\Exception $e) {
@@ -165,19 +135,11 @@ class OrderController extends Controller
             }
         }
 
-        // 3. LOGIKA SNAP TOKEN
         $payment = $order->payment;
-        $snapToken = null;
-
-        if ($payment && !empty($payment->transaction_code)) {
-            if ($order->payment_status !== 'Berhasil') {
-                $snapToken = $payment->transaction_code;
-            }
-        }
+        $snapToken = ($payment && $order->payment_status !== 'Berhasil') ? $payment->transaction_code : null;
 
         if (empty($snapToken) && $order->payment_status == 'Pending') {
             try {
-                // KONSISTENSI: Gunakan Config (karena sudah di-import di atas)
                 Config::$serverKey = config('midtrans.server_key');
                 Config::$isProduction = config('midtrans.is_production');
                 Config::$isSanitized = true;
@@ -192,12 +154,8 @@ class OrderController extends Controller
                         'first_name' => Auth::guard('customer')->user()->name,
                         'email'      => Auth::guard('customer')->user()->email,
                     ],
-                    'callbacks' => [
-                        'finish' => route('orders.show', $order->invoice_number) . '?payment_success=1',
-                    ]
                 ];
 
-                // KONSISTENSI: Gunakan Snap (karena sudah di-import di atas)
                 $snapToken = Snap::getSnapToken($payload);
 
                 Payment::updateOrCreate(
@@ -211,13 +169,12 @@ class OrderController extends Controller
                 );
             } catch (\Exception $e) {
                 Log::error("Snap Token Error: " . $e->getMessage());
-                return redirect()->route('orders.history')->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
             }
         }
 
         return view('user.checkout.show', compact('order', 'snapToken'));
     }
-    // Tambahkan method ini di dalam class OrderController
+
 
     public function history()
     {

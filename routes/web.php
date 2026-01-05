@@ -92,14 +92,14 @@ Route::prefix('customer')->group(function () {
         //Route::get('/orders/{invoice}', [OrderController::class, 'show'])->name('customer.orders.show');
 
 
-       
+
 
 
         Route::get('/orders/history', [OrderController::class, 'history'])->name('orders.history');
         Route::get('/orders/show/{invoice}', [OrderController::class, 'show'])->name('orders.show');
         Route::get('/orders/filter', [OrderController::class, 'checkStatusPayment'])->name('orders.filter');
 
-
+        Route::post('/cart/update', [App\Http\Controllers\User\CartController::class, 'update'])->name('user.cart.update');
 
         Route::post('/payment/callback', [PaymentController::class, 'handleCallback'])->name('payment.callback');
 

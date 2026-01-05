@@ -216,73 +216,101 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const checkboxes = document.querySelectorAll('.itemCheckbox');
-            const selectAll = document.getElementById('selectAll');
-            const totalPriceEl = document.getElementById('totalPrice');
+   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('.itemCheckbox');
+        const selectAll = document.getElementById('selectAll');
+        const totalPriceEl = document.getElementById('totalPrice');
 
-            // Hitung total harga saat checkbox berubah
-            function updateTotal() {
-                let total = 0;
-                checkboxes.forEach(cb => {
-                    if (cb.checked) {
-                        const price = parseInt(cb.dataset.price);
-                        const qty = parseInt(cb.dataset.qty);
-                        total += price * qty;
+        // Fungsi untuk Update ke Database via AJAX
+        async function updateCartDatabase(cartId, newAmount) {
+            try {
+                const response = await fetch("{{ route('user.cart.update') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        cart_id: cartId,
+                        amount: newAmount
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // Update tampilan subtotal per baris
+                    document.getElementById(`subtotal-${cartId}`).textContent = `Rp ${data.subtotal}`;
+                    // Update tampilan total keseluruhan (jika semua dicentang)
+                    if(selectAll.checked) {
+                        totalPriceEl.textContent = `Rp ${data.totalAll}`;
+                    } else {
+                        updateTotalLocally(); // Hitung ulang hanya yang dicentang
                     }
-                });
-                totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+                }
+            } catch (error) {
+                console.error("Gagal mengupdate keranjang", error);
             }
+        }
 
-            checkboxes.forEach(cb => cb.addEventListener('change', updateTotal));
-            if (selectAll) {
-                selectAll.addEventListener('change', (e) => {
-                    checkboxes.forEach(cb => cb.checked = e.target.checked);
-                    updateTotal();
-                });
-            }
-
-            // Tambah/kurangi jumlah produk
-            document.querySelectorAll('.increase').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.id;
-                    const qtyEl = document.getElementById(`qty-${id}`);
-                    let qty = parseInt(qtyEl.textContent);
-                    qty++;
-                    qtyEl.textContent = qty;
-
-                    const checkbox = btn.closest('tr').querySelector('.itemCheckbox');
-                    checkbox.dataset.qty = qty;
-
-                    const price = parseInt(checkbox.dataset.price);
-                    const subtotalEl = document.getElementById(`subtotal-${id}`);
-                    subtotalEl.textContent = `Rp ${(price * qty).toLocaleString('id-ID')}`;
-
-                    updateTotal();
-                });
+        // Hitung total harga lokal (berdasarkan checkbox yang dicentang)
+        function updateTotalLocally() {
+            let total = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    const price = parseInt(cb.dataset.price);
+                    const qty = parseInt(cb.dataset.qty);
+                    total += price * qty;
+                }
             });
+            totalPriceEl.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        }
 
-            document.querySelectorAll('.decrease').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.id;
-                    const qtyEl = document.getElementById(`qty-${id}`);
-                    let qty = parseInt(qtyEl.textContent);
-                    if (qty > 1) qty--;
-                    qtyEl.textContent = qty;
+        checkboxes.forEach(cb => cb.addEventListener('change', updateTotalLocally));
 
-                    const checkbox = btn.closest('tr').querySelector('.itemCheckbox');
-                    checkbox.dataset.qty = qty;
+        if (selectAll) {
+            selectAll.addEventListener('change', (e) => {
+                checkboxes.forEach(cb => cb.checked = e.target.checked);
+                updateTotalLocally();
+            });
+        }
 
-                    const price = parseInt(checkbox.dataset.price);
-                    const subtotalEl = document.getElementById(`subtotal-${id}`);
-                    subtotalEl.textContent = `Rp ${(price * qty).toLocaleString('id-ID')}`;
+        // Tombol Tambah (+)
+        document.querySelectorAll('.increase').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const qtyEl = document.getElementById(`qty-${id}`);
+                let qty = parseInt(qtyEl.textContent);
+                qty++;
 
-                    updateTotal();
-                });
+                qtyEl.textContent = qty;
+                const checkbox = this.closest('tr').querySelector('.itemCheckbox');
+                checkbox.dataset.qty = qty; // Update data-qty di checkbox
+
+                updateTotalLocally();
+                updateCartDatabase(id, qty); // Simpan ke database
             });
         });
-    </script>
+
+        // Tombol Kurang (-)
+        document.querySelectorAll('.decrease').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const qtyEl = document.getElementById(`qty-${id}`);
+                let qty = parseInt(qtyEl.textContent);
+
+                if (qty > 1) {
+                    qty--;
+                    qtyEl.textContent = qty;
+                    const checkbox = this.closest('tr').querySelector('.itemCheckbox');
+                    checkbox.dataset.qty = qty; // Update data-qty di checkbox
+
+                    updateTotalLocally();
+                    updateCartDatabase(id, qty); // Simpan ke database
+                }
+            });
+        });
+    });
+</script>
 
 </body>
 
