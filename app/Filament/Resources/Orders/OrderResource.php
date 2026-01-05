@@ -15,7 +15,7 @@ use App\Filament\Resources\Orders\Pages\CreateOrder;
 use App\Filament\Resources\Orders\Schemas\OrderForm;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Filament\Resources\Orders\Schemas\OrderInfolist;
-use App\Filament\Resources\Shop\Orders\Widgets\OrderStats;
+use App\Filament\Resources\Orders\Widgets\OrderStats;
 use App\Filament\Resources\Orders\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\Orders\RelationManagers\AddressRelationManager;
 
@@ -52,7 +52,7 @@ class OrderResource extends Resource
         ];
     }
 
-     public static function getWidgets(): array
+    public static function getWidgets(): array
     {
         return [
             OrderStats::class,
@@ -69,6 +69,4 @@ class OrderResource extends Resource
 
         ];
     }
-
-
 }

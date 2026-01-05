@@ -22,13 +22,16 @@ class CartController extends Controller
 
         $userId = Auth::guard('customer')->id();
 
-        $cartItems = Cart::with('product')
-            ->where('customer_id', $userId)
-            ->get();
 
-        $total = $cartItems->sum(function ($item) {
-            return ($item->product->price ?? 0) * $item->quantity;
-        });
+        $cartItems = Cart::where('customer_id', auth()->guard('customer')->id())->get();
+
+        $cartCount = Cart::where('customer_id', auth()->guard('customer')->id())
+            ->sum('amount');
+
+        $total = Cart::where('customer_id', auth()->guard('customer')->id())
+            ->with('product')
+            ->get()
+            ->sum(fn($item) => $item->product->price * $item->amount);
 
         return view('user.cart', compact('cartItems', 'total'));
     }
@@ -45,22 +48,30 @@ class CartController extends Controller
 
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'quantity' => 'nullable|integer|min:1',
         ]);
 
         $userId = Auth::guard('customer')->id();
         $productId = $request->product_id;
+        $quantity = $request->quantity ?? 1;
+
+        $product = \App\Models\Product::find($productId);
+        $total = $product->price * $quantity;
 
         $cart = Cart::where('customer_id', $userId)
             ->where('product_id', $productId)
             ->first();
 
         if ($cart) {
-            $cart->increment('quantity');
+            $cart->amount += $quantity;
+            $cart->total += $total;
+            $cart->save();
         } else {
             Cart::create([
                 'customer_id' => $userId,
-                'product_id'       => $productId,
-                'quantity'         => 1,
+                'product_id' => $productId,
+                'amount' => $quantity,
+                'total' => $total,
             ]);
         }
 
@@ -88,5 +99,24 @@ class CartController extends Controller
         return redirect()
             ->route('user.cart.index')
             ->with('success', 'Produk berhasil dihapus dari keranjang!');
+    }
+
+    /**
+     * Kosongkan keranjang
+     */
+    public function clear()
+    {
+        if (!Auth::guard('customer')->check()) {
+            return redirect()->route('customer.login')
+                ->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $userId = Auth::guard('customer')->id();
+
+        Cart::where('customer_id', $userId)->delete();
+
+        return redirect()
+            ->route('user.cart.index')
+            ->with('success', 'Keranjang berhasil dikosongkan!');
     }
 }
